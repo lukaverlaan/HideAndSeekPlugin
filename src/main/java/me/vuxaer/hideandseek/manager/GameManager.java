@@ -15,6 +15,7 @@ public class GameManager {
 
     private GameState state = GameState.WAITING;
     private final PlayerManager playerManager;
+    private BukkitRunnable gameTimer;
 
     public GameManager(PlayerManager playerManager) {
         this.playerManager = playerManager;
@@ -78,6 +79,78 @@ public class GameManager {
 
     private void startSeekingPhase() {
         state = GameState.SEEKING;
+
         Bukkit.broadcastMessage("Seekers can now move!");
+
+        startGameTimer();
+    }
+
+    private void startGameTimer() {
+
+        gameTimer = new BukkitRunnable() {
+            int time = 180;
+
+            @Override
+            public void run() {
+
+                if (state != GameState.SEEKING) {
+                    cancel();
+                    return;
+                }
+
+                if (time <= 0) {
+                    cancel();
+                    endGameHidersWin();
+                    return;
+                }
+
+                if (time % 30 == 0 || time <= 10) {
+                    Bukkit.broadcastMessage("Game ends in: " + time + "s");
+                }
+
+                time--;
+            }
+
+        };
+
+        gameTimer.runTaskTimer(HideAndSeekPlugin.getInstance(), 0, 20);
+    }
+
+    public void checkWinCondition() {
+
+        long aliveHiders = playerManager.getAllPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.HIDER)
+                .filter(GamePlayer::isAlive)
+                .count();
+
+        if (aliveHiders == 0) {
+            endGameSeekersWin();
+        }
+    }
+
+    public void endGameSeekersWin() {
+        state = GameState.ENDING;
+
+        stopTimers();
+
+        Bukkit.broadcastMessage("Seekers win!");
+
+        // TODO: POST request
+    }
+
+    public void endGameHidersWin() {
+        state = GameState.ENDING;
+
+        stopTimers();
+
+        Bukkit.broadcastMessage("Hiders win!");
+
+        // TODO: POST request
+    }
+
+    private void stopTimers() {
+        if (gameTimer != null) {
+            gameTimer.cancel();
+        }
     }
 }

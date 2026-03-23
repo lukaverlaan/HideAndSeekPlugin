@@ -1,5 +1,6 @@
 package me.vuxaer.hideandseek;
 
+import me.vuxaer.hideandseek.listener.DamageListener;
 import me.vuxaer.hideandseek.listener.JoinListener;
 import me.vuxaer.hideandseek.listener.MoveListener;
 import me.vuxaer.hideandseek.manager.GameManager;
@@ -21,6 +22,7 @@ public final class HideAndSeekPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new JoinListener(), this);
         getServer().getPluginManager().registerEvents(new MoveListener(), this);
+        getServer().getPluginManager().registerEvents(new DamageListener(), this);
     }
 
     public static HideAndSeekPlugin getInstance() {
