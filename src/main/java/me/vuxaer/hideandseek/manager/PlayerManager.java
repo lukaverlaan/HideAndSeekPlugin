@@ -3,10 +3,7 @@ package me.vuxaer.hideandseek.manager;
 import me.vuxaer.hideandseek.domain.GamePlayer;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayerManager {
 
@@ -14,6 +11,10 @@ public class PlayerManager {
 
     public void addPlayer(Player player) {
         players.put(player.getUniqueId(), new GamePlayer(player));
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player.getUniqueId());
     }
 
     public GamePlayer getPlayer(Player player) {

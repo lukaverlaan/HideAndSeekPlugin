@@ -3,25 +3,21 @@ package me.vuxaer.hideandseek.listener;
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
 import me.vuxaer.hideandseek.domain.BlockDisguise;
 import me.vuxaer.hideandseek.domain.GamePlayer;
-import org.bukkit.Bukkit;
+import me.vuxaer.hideandseek.manager.GameManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 
-public class JoinListener implements Listener {
+public class QuitListener implements Listener {
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-
-        player.setFlying(false);
-        player.setAllowFlight(false);
-        player.setGravity(true);
+    public void onQuit(PlayerQuitEvent event) {
 
         var plugin = HideAndSeekPlugin.getInstance();
+        Player player = event.getPlayer();
 
-        plugin.getPlayerManager().addPlayer(player);
+        GameManager gm = plugin.getGameManager();
 
         BlockDisguise disguise = plugin.getDisguiseManager().getDisguiseByPlayer(player);
         if (disguise != null) {
@@ -30,15 +26,11 @@ public class JoinListener implements Listener {
 
         GamePlayer gp = plugin.getPlayerManager().getPlayer(player);
         if (gp != null) {
-            gp.reset();
+            plugin.getPlayerManager().removePlayer(player);
         }
 
-        Bukkit.broadcastMessage(player.getName() + " joined!");
-
-        if (!plugin.getGameManager().isGameRunning()
-                && Bukkit.getOnlinePlayers().size() >= 2) {
-
-            plugin.getGameManager().startGame();
+        if (gm.isGameRunning()) {
+            gm.checkWinCondition();
         }
     }
 }

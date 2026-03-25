@@ -1,6 +1,7 @@
 package me.vuxaer.hideandseek.listener;
 
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
+import me.vuxaer.hideandseek.domain.BlockDisguise;
 import me.vuxaer.hideandseek.domain.GamePlayer;
 import me.vuxaer.hideandseek.manager.GameManager;
 import me.vuxaer.hideandseek.util.GameState;
@@ -36,7 +37,16 @@ public class DamageListener implements Listener {
 
         if (victimGP == null || attackerGP == null) return;
 
-        // Alleen seekers mogen hiders hitten
+        // prevent hitting solid disguised players via entity system
+        BlockDisguise disguise = HideAndSeekPlugin.getInstance()
+                .getDisguiseManager()
+                .getDisguiseByPlayer(victim);
+
+        if (disguise != null && disguise.isSolid()) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (attackerGP.getRole() != PlayerRole.SEEKER ||
                 victimGP.getRole() != PlayerRole.HIDER) {
             event.setCancelled(true);
@@ -45,7 +55,9 @@ public class DamageListener implements Listener {
 
         event.setCancelled(true);
 
-        victimGP.addHit();
+        if (!victimGP.canBeHit()) return;
+
+        victimGP.registerHit();
 
         victim.sendMessage("You got hit! (" + victimGP.getHits() + "/3)");
 
@@ -53,7 +65,6 @@ public class DamageListener implements Listener {
             victimGP.setAlive(false);
 
             victim.sendMessage("You are eliminated!");
-
             victim.setGameMode(GameMode.SPECTATOR);
 
             gm.checkWinCondition();
