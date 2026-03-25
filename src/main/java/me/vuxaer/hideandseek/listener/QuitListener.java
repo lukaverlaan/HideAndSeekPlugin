@@ -1,7 +1,6 @@
 package me.vuxaer.hideandseek.listener;
 
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
-import me.vuxaer.hideandseek.domain.BlockDisguise;
 import me.vuxaer.hideandseek.domain.GamePlayer;
 import me.vuxaer.hideandseek.manager.GameManager;
 import org.bukkit.entity.Player;
@@ -19,13 +18,15 @@ public class QuitListener implements Listener {
 
         GameManager gm = plugin.getGameManager();
 
-        BlockDisguise disguise = plugin.getDisguiseManager().getDisguiseByPlayer(player);
+        var disguise = plugin.getDisguiseManager().getDisguiseByPlayer(player);
         if (disguise != null) {
             plugin.getDisguiseManager().removeDisguise(disguise);
         }
 
         GamePlayer gp = plugin.getPlayerManager().getPlayer(player);
+
         if (gp != null) {
+            gp.setAlive(false);
             plugin.getPlayerManager().removePlayer(player);
         }
 

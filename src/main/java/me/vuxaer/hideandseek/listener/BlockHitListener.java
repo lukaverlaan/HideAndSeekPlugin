@@ -4,10 +4,6 @@ import me.vuxaer.hideandseek.HideAndSeekPlugin;
 import me.vuxaer.hideandseek.domain.BlockDisguise;
 import me.vuxaer.hideandseek.domain.GamePlayer;
 import me.vuxaer.hideandseek.util.PlayerRole;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -23,52 +19,32 @@ public class BlockHitListener implements Listener {
 
         Player player = event.getPlayer();
 
-        GamePlayer attacker = HideAndSeekPlugin.getInstance()
-                .getPlayerManager()
-                .getPlayer(player);
+        var plugin = HideAndSeekPlugin.getInstance();
+        var gm = plugin.getGameManager();
+
+        GamePlayer attacker = plugin.getPlayerManager().getPlayer(player);
 
         if (attacker == null || attacker.getRole() != PlayerRole.SEEKER) return;
 
-        Location loc = event.getClickedBlock().getLocation();
+        var clicked = event.getClickedBlock().getLocation();
 
-        BlockDisguise disguise = HideAndSeekPlugin.getInstance()
-                .getDisguiseManager()
-                .getDisguise(loc);
+        BlockDisguise disguise = null;
 
+        for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+                for (int z = -1; z <= 1; z++) {
+                    var checkLoc = clicked.clone().add(x, y, z);
+                    disguise = plugin.getDisguiseManager().getDisguise(checkLoc);
+                    if (disguise != null) break;
+                }
+                if (disguise != null) break;
+            }
+            if (disguise != null) break;
+        }
         if (disguise == null) return;
 
         event.setCancelled(true);
 
-        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_STRONG, 1, 1);
-
-        player.getWorld().spawnParticle(
-                Particle.BLOCK_CRACK,
-                loc.clone().add(0.5, 0.5, 0.5),
-                10,
-                event.getClickedBlock().getBlockData()
-        );
-
-        Player victim = disguise.getPlayer();
-
-        GamePlayer victimGP = HideAndSeekPlugin.getInstance()
-                .getPlayerManager()
-                .getPlayer(victim);
-
-        if (!victimGP.canBeHit()) return;
-
-        victimGP.registerHit();
-
-        victim.sendMessage("You got hit! (" + victimGP.getHits() + "/3)");
-
-        if (victimGP.isDead()) {
-            victimGP.setAlive(false);
-
-            victim.sendMessage("You are eliminated!");
-            victim.setGameMode(GameMode.SPECTATOR);
-
-            HideAndSeekPlugin.getInstance()
-                    .getGameManager()
-                    .checkWinCondition();
-        }
+        gm.handleHit(player, disguise.getPlayer());
     }
 }

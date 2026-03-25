@@ -85,7 +85,7 @@ public class DisguiseManager {
                 disguise.checkStillness();
             }
 
-        }, 1L, 1L); // 🔥 elke tick = smoother
+        }, 1L, 1L);
     }
 
     public void cleanup() {

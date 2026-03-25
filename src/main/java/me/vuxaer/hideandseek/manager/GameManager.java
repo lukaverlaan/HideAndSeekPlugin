@@ -2,23 +2,35 @@ package me.vuxaer.hideandseek.manager;
 
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
 import me.vuxaer.hideandseek.domain.GamePlayer;
+import me.vuxaer.hideandseek.domain.GameResult;
+import me.vuxaer.hideandseek.gui.BlockSelector;
 import me.vuxaer.hideandseek.util.GameState;
 import me.vuxaer.hideandseek.util.PlayerRole;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.GameMode;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public class GameManager {
 
-    private GameState state = GameState.WAITING;
+    private static final String SEEKERS = "SEEKERS";
+    private static final String HIDERS = "HIDERS";
+
+    private final Set<UUID> selectedHiders = new HashSet<>();
+
+    private final HideAndSeekPlugin plugin = HideAndSeekPlugin.getInstance();
     private final PlayerManager playerManager;
+
+    private GameState state = GameState.WAITING;
+
     private BukkitRunnable hideTimer;
     private BukkitRunnable gameTimer;
+
+    private long gameStartTime;
 
     public GameManager(PlayerManager playerManager) {
         this.playerManager = playerManager;
@@ -29,10 +41,9 @@ public class GameManager {
     }
 
     public void startGame() {
+        selectedHiders.clear();
 
-        if (isGameRunning()) {
-            return;
-        }
+        if (state != GameState.WAITING) return;
 
         if (playerManager.getAllPlayers().size() < 2) {
             Bukkit.broadcastMessage("Not enough players to start!");
@@ -42,16 +53,11 @@ public class GameManager {
         Bukkit.broadcastMessage("Game starting!");
 
         assignTeams();
-
-        state = GameState.HIDING;
-        startHideCountdown();
     }
 
     public void resetGame() {
 
         stopTimers();
-
-        var plugin = HideAndSeekPlugin.getInstance();
 
         for (GamePlayer gp : playerManager.getAllPlayers()) {
 
@@ -66,51 +72,49 @@ public class GameManager {
             gp.setAlive(true);
         }
 
+        plugin.getScoreboardManager().clearAll();
+
         state = GameState.WAITING;
     }
 
     private void assignTeams() {
-        List<GamePlayer> list = new ArrayList<>(playerManager.getAllPlayers());
 
+        List<GamePlayer> list = new ArrayList<>(playerManager.getAllPlayers());
         Collections.shuffle(list);
 
         int half = list.size() / 2;
 
         for (int i = 0; i < list.size(); i++) {
-            GamePlayer gp = list.get(i);
 
+            GamePlayer gp = list.get(i);
             gp.reset();
 
             if (i < half) {
                 gp.setRole(PlayerRole.SEEKER);
                 gp.getPlayer().sendMessage("You are a SEEKER!");
-
             } else {
                 gp.setRole(PlayerRole.HIDER);
                 gp.getPlayer().sendMessage("You are a HIDER!");
 
-                Material material = Math.random() < 0.5
-                        ? Material.OAK_PLANKS
-                        : Material.STONE;
+                selectedHiders.add(gp.getPlayer().getUniqueId());
 
-                HideAndSeekPlugin.getInstance()
-                        .getDisguiseManager()
-                        .disguise(gp.getPlayer(), material);
+                BlockSelector.open(gp.getPlayer());
             }
         }
     }
 
     private void startHideCountdown() {
 
-        if (hideTimer != null) {
-            hideTimer.cancel();
-        }
+        if (hideTimer != null) hideTimer.cancel();
 
         hideTimer = new BukkitRunnable() {
+
             int time = 60;
 
             @Override
             public void run() {
+
+                plugin.getScoreboardManager().updateAll(time);
 
                 if (state != GameState.HIDING) {
                     cancel();
@@ -123,19 +127,27 @@ public class GameManager {
                     return;
                 }
 
-                if (time % 10 == 0 || time <= 5) {
-                    Bukkit.broadcastMessage(time + " seconds remaining!");
+                if (time == 60 || time == 30 || time == 10 || time <= 5) {
+                    Bukkit.broadcastMessage("§e" + time + " seconds remaining");
+                }
+
+                if (time <= 5) {
+                    Bukkit.getOnlinePlayers().forEach(p ->
+                            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1)
+                    );
                 }
 
                 time--;
             }
         };
 
-        hideTimer.runTaskTimer(HideAndSeekPlugin.getInstance(), 0, 20);
+        hideTimer.runTaskTimer(plugin, 0, 20);
     }
 
     private void startSeekingPhase() {
+
         state = GameState.SEEKING;
+        gameStartTime = System.currentTimeMillis();
 
         Bukkit.broadcastMessage("Seekers can now move!");
 
@@ -145,10 +157,13 @@ public class GameManager {
     private void startGameTimer() {
 
         gameTimer = new BukkitRunnable() {
+
             int time = 180;
 
             @Override
             public void run() {
+
+                plugin.getScoreboardManager().updateAll(time);
 
                 if (state != GameState.SEEKING) {
                     cancel();
@@ -157,20 +172,63 @@ public class GameManager {
 
                 if (time <= 0) {
                     cancel();
-                    endGameHidersWin();
+                    endGame(HIDERS);
                     return;
-                }
-
-                if (time % 30 == 0 || time <= 10) {
-                    Bukkit.broadcastMessage("Game ends in: " + time + "s");
                 }
 
                 time--;
             }
-
         };
 
-        gameTimer.runTaskTimer(HideAndSeekPlugin.getInstance(), 0, 20);
+        gameTimer.runTaskTimer(plugin, 0, 20);
+    }
+
+    public void handleHit(Player attacker, Player victim) {
+
+        GamePlayer attackerGP = playerManager.getPlayer(attacker);
+        GamePlayer victimGP = playerManager.getPlayer(victim);
+
+        if (attackerGP == null || victimGP == null) return;
+
+        if (attackerGP.getRole() != PlayerRole.SEEKER ||
+                victimGP.getRole() != PlayerRole.HIDER) return;
+
+        if (!victimGP.canBeHit()) return;
+
+        victimGP.registerHit();
+
+        attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_STRONG, 1, 1);
+        victim.playSound(victim.getLocation(), Sound.ENTITY_PLAYER_HURT, 1, 1);
+
+        victim.getWorld().spawnParticle(
+                Particle.CRIT,
+                victim.getLocation().add(0, 1, 0),
+                10
+        );
+
+        if (!victimGP.isDead()) {
+            victim.sendMessage("§cYou got hit! (§f" + victimGP.getHits() + "/3§c)");
+            return;
+        }
+
+        victimGP.setAlive(false);
+
+        victim.sendMessage("§cYou are eliminated!");
+        victim.setGameMode(GameMode.SPECTATOR);
+
+        int remaining = (int) playerManager.getAllPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.HIDER)
+                .filter(GamePlayer::isAlive)
+                .count();
+
+        String message = remaining > 0
+                ? " §7(" + remaining + " hiders left)"
+                : "";
+
+        Bukkit.broadcastMessage("§c" + attacker.getName()
+                + " §fhas found §a" + victim.getName() + message);
+
+        checkWinCondition();
     }
 
     public void checkWinCondition() {
@@ -186,42 +244,57 @@ public class GameManager {
                 .count();
 
         if (aliveHiders == 0) {
-            endGameSeekersWin();
+            endGame(SEEKERS);
         } else if (aliveSeekers == 0) {
-            endGameHidersWin();
+            endGame(HIDERS);
         }
     }
 
-    public void endGameSeekersWin() {
-        state = GameState.ENDING;
+    private void endGame(String winner) {
 
+        state = GameState.ENDING;
         stopTimers();
 
-        Bukkit.broadcastMessage("Seekers win!");
+        long duration = (System.currentTimeMillis() - gameStartTime) / 1000;
 
-        // TODO: POST request
+        GameResult result = buildResult(winner, duration);
 
-        Bukkit.getScheduler().runTaskLater(
-                HideAndSeekPlugin.getInstance(),
-                this::resetGame,
-                100
-        );
+        if (winner.equals(SEEKERS)) {
+            Bukkit.broadcastMessage("§cSeekers have won the game!");
+        } else {
+            Bukkit.broadcastMessage("§aHiders have won the game!");
+        }
+
+        sendResult(result);
+
+        Bukkit.getScheduler().runTaskLater(plugin, this::resetGame, 100);
     }
 
-    public void endGameHidersWin() {
-        state = GameState.ENDING;
+    private void sendResult(GameResult result) {
 
-        stopTimers();
+        String endpoint = plugin.getConfig().getString("endpoint");
 
-        Bukkit.broadcastMessage("Hiders win!");
+        if (endpoint == null || endpoint.isEmpty()) {
+            plugin.getLogger().warning("No endpoint configured!");
+            return;
+        }
 
-        // TODO: POST request
+        plugin.getHttpService().sendGameResult(endpoint, result);
+    }
 
-        Bukkit.getScheduler().runTaskLater(
-                HideAndSeekPlugin.getInstance(),
-                this::resetGame,
-                100
-        );
+    private GameResult buildResult(String winner, long duration) {
+
+        var seekers = playerManager.getAllPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.SEEKER)
+                .map(GamePlayer::getPlayer)
+                .toList();
+
+        var hiders = playerManager.getAllPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.HIDER)
+                .map(GamePlayer::getPlayer)
+                .toList();
+
+        return new GameResult(seekers, hiders, winner, duration);
     }
 
     private void stopTimers() {
@@ -247,14 +320,22 @@ public class GameManager {
 
         Bukkit.broadcastMessage("Game cancelled: " + reason);
 
-        Bukkit.getScheduler().runTaskLater(
-                HideAndSeekPlugin.getInstance(),
-                this::resetGame,
-                40
-        );
+        Bukkit.getScheduler().runTaskLater(plugin, this::resetGame, 40);
     }
 
     public boolean isGameRunning() {
         return state == GameState.HIDING || state == GameState.SEEKING;
+    }
+
+    public void onHiderSelected(Player player) {
+
+        selectedHiders.remove(player.getUniqueId());
+
+        if (selectedHiders.isEmpty()) {
+            Bukkit.broadcastMessage("All hiders are ready!");
+
+            state = GameState.HIDING;
+            startHideCountdown();
+        }
     }
 }
