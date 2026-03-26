@@ -20,23 +20,33 @@ public class GameCommand implements CommandExecutor {
 
         var msg = plugin.getMessageManager();
 
-        if (!sender.hasPermission("hs.admin")) {
-            sender.sendMessage(msg.get("no_permission"));
-            return true;
-        }
-
         if (args.length == 0) {
-            sender.sendMessage(msg.get("command_usage"));
+            sendHelp(sender);
             return true;
         }
 
         switch (args[0].toLowerCase()) {
 
+            case "help" -> {
+                sendHelp(sender);
+            }
+
             case "start" -> {
+
+                if (!sender.hasPermission("hs.admin")) {
+                    sender.sendMessage(msg.get("no_permission"));
+                    return true;
+                }
+
                 plugin.getGameManager().startGame();
             }
 
             case "stop" -> {
+
+                if (!sender.hasPermission("hs.admin")) {
+                    sender.sendMessage(msg.get("no_permission"));
+                    return true;
+                }
 
                 if (!plugin.getGameManager().isGameRunning()) {
                     sender.sendMessage(msg.get("command_no_game"));
@@ -48,9 +58,39 @@ public class GameCommand implements CommandExecutor {
                 );
             }
 
-            default -> sender.sendMessage(msg.get("command_unknown"));
+            case "reload" -> {
+
+                if (!sender.hasPermission("hs.admin")) {
+                    sender.sendMessage(msg.get("no_permission"));
+                    return true;
+                }
+
+                plugin.reloadConfig();
+                plugin.getMessageManager().load();
+
+                sender.sendMessage(msg.get("command_reload"));
+            }
+
+            default -> sendHelp(sender);
         }
 
         return true;
+    }
+
+    private void sendHelp(CommandSender sender) {
+
+        var msg = plugin.getMessageManager();
+
+        sender.sendMessage(" ");
+        sender.sendMessage(msg.get("command_help_header"));
+        sender.sendMessage(" ");
+
+        if (sender.hasPermission("hs.admin")) {
+            sender.sendMessage(msg.get("command_help_start"));
+            sender.sendMessage(msg.get("command_help_stop"));
+            sender.sendMessage(msg.get("command_help_reload"));
+        }
+
+        sender.sendMessage(" ");
     }
 }

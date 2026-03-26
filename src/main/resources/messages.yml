@@ -35,6 +35,12 @@ messages:
     command_unknown: "§cUnknown command."
     command_stopped_reason: "Stopped by admin"
     command_no_game: "§cNo game is currently running."
+    command_reload: "§aConfiguration reloaded!"
+
+    command_help_header: "§6§lHide & Seek Commands"
+    command_help_start: "§e/hs start §7- Start the game"
+    command_help_stop: "§e/hs stop §7- Stop the game"
+    command_help_reload: "§e/hs reload §7- Reload config.yml & messages.yml"
 
 
     scoreboard:
@@ -83,6 +89,12 @@ messages:
     command_unknown: "§cOnbekend commando."
     command_stopped_reason: "Gestopt door admin"
     command_no_game: "§cEr is op dit moment geen spel bezig."
+    command_reload: "§aConfiguratie herladen!"
+
+    command_help_header: "§6§lHide & Seek Commando's"
+    command_help_start: "§e/hs start §7- Start het spel"
+    command_help_stop: "§e/hs stop §7- Stop het spel"
+    command_help_reload: "§e/hs reload §7- Reload config.yml & messages.yml"
 
     scoreboard:
       title: "§6§lSprookjesCraft"

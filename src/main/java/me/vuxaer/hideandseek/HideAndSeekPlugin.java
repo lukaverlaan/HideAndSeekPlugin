@@ -1,6 +1,7 @@
 package me.vuxaer.hideandseek;
 
 import me.vuxaer.hideandseek.command.GameCommand;
+import me.vuxaer.hideandseek.command.GameTabCompleter;
 import me.vuxaer.hideandseek.listener.*;
 import me.vuxaer.hideandseek.manager.*;
 import me.vuxaer.hideandseek.net.HttpService;
@@ -38,6 +39,7 @@ public final class HideAndSeekPlugin extends JavaPlugin {
         registerListeners();
 
         getCommand("hs").setExecutor(new GameCommand(this));
+        getCommand("hs").setTabCompleter(new GameTabCompleter());
 
         disguiseManager.startTask();
     }
