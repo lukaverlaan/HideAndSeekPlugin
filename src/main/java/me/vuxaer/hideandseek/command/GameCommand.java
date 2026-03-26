@@ -38,6 +38,11 @@ public class GameCommand implements CommandExecutor {
                     return true;
                 }
 
+                if (plugin.getGameManager().isGameRunning()) {
+                    sender.sendMessage(msg.get("command_game_running"));
+                    return true;
+                }
+
                 plugin.getGameManager().startGame();
             }
 

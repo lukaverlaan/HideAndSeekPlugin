@@ -12,6 +12,7 @@ public class MessageManager {
     private final JavaPlugin plugin;
     private FileConfiguration config;
     private String language;
+    private String prefix;
 
     public MessageManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -27,12 +28,22 @@ public class MessageManager {
         }
 
         config = YamlConfiguration.loadConfiguration(file);
+
         language = config.getString("language", "en");
+        prefix = config.getString("prefix", "");
     }
 
     public String get(String path) {
+
         String fullPath = "messages." + language + "." + path;
-        return config.getString(fullPath, "Missing: " + path);
+
+        String msg = config.getString(fullPath);
+
+        if (msg == null) {
+            return "§cMissing message: " + path;
+        }
+
+        return apply(msg);
     }
 
     public String get(String path, Map<String, String> placeholders) {
@@ -51,5 +62,9 @@ public class MessageManager {
         String key = (time == 1) ? singularKey : pluralKey;
 
         return get(key, Map.of("time", String.valueOf(time)));
+    }
+
+    private String apply(String msg) {
+        return msg.replace("%prefix%", prefix);
     }
 }
