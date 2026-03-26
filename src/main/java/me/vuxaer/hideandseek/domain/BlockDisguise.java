@@ -49,19 +49,26 @@ public class BlockDisguise {
 
     public void updatePosition() {
 
-        if (!solid && stand != null) {
+        if (solid) {
+            player.setVelocity(player.getVelocity().zero());
+            return;
+        }
+
+        if (stand != null) {
             stand.teleport(player.getLocation().clone().add(0, -1.3, 0));
         }
     }
 
     public void onMove(Location from, Location to) {
+
+        if (solid) {
+            player.teleport(blockLocation.clone().add(0.5, 1, 0.5));
+            return;
+        }
+
         if (from.distanceSquared(to) < 0.001) return;
 
         lastMoveTime = System.currentTimeMillis();
-
-        if (solid) {
-            breakDisguise();
-        }
     }
 
     public void checkStillness() {
@@ -157,5 +164,9 @@ public class BlockDisguise {
 
     public boolean isSolid() {
         return solid;
+    }
+
+    public Location getBlockLocation() {
+        return blockLocation;
     }
 }

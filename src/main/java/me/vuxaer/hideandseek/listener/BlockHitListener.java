@@ -2,28 +2,32 @@ package me.vuxaer.hideandseek.listener;
 
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
 import me.vuxaer.hideandseek.domain.BlockDisguise;
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.entity.Player;
 
-public class BlockBreakListener implements Listener {
+public class BlockHitListener implements Listener {
 
     @EventHandler
-    public void onBreak(BlockBreakEvent event) {
+    public void onHit(PlayerInteractEvent event) {
+
+        if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
 
         Player attacker = event.getPlayer();
 
         var plugin = HideAndSeekPlugin.getInstance();
         var gm = plugin.getGameManager();
 
-        var loc = event.getBlock().getLocation().getBlock().getLocation();
+        var block = event.getClickedBlock();
+        if (block == null) return;
+
+        var loc = block.getLocation().getBlock().getLocation();
 
         BlockDisguise disguise = plugin.getDisguiseManager().getDisguise(loc);
 
         if (disguise == null) return;
-
-        event.setCancelled(true);
 
         Player victim = disguise.getPlayer();
 
