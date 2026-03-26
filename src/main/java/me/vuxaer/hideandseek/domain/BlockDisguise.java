@@ -1,15 +1,11 @@
 package me.vuxaer.hideandseek.domain;
 
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
-import org.bukkit.entity.*;
+import org.bukkit.*;
+import org.bukkit.block.Block;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Transformation;
-import org.joml.AxisAngle4f;
-import org.joml.Vector3f;
 
 public class BlockDisguise {
 
@@ -20,10 +16,9 @@ public class BlockDisguise {
     private long lastMoveTime;
 
     private ArmorStand stand;
-    private BlockDisplay display;
-    private Interaction interaction;
 
-    private Location solidLocation;
+    private Location blockLocation;
+    private Material originalMaterial;
 
     public BlockDisguise(Player player, Material material) {
         this.player = player;
@@ -34,12 +29,9 @@ public class BlockDisguise {
     public void spawn() {
         player.setInvisible(true);
 
-        removeDisplay();
-        removeInteraction();
+        removeStand();
 
-        if (stand == null) {
-            stand = spawnStand(player.getLocation());
-        }
+        stand = spawnStand(player.getLocation());
 
         lastMoveTime = System.currentTimeMillis();
     }
@@ -55,50 +47,10 @@ public class BlockDisguise {
         return as;
     }
 
-    private BlockDisplay spawnDisplay(Location loc) {
-
-        BlockDisplay bd = (BlockDisplay) player.getWorld()
-                .spawnEntity(loc, EntityType.BLOCK_DISPLAY);
-
-        bd.setBlock(material.createBlockData());
-
-        bd.setTransformation(new Transformation(
-                new Vector3f(-0.5f, 0, -0.5f),
-                new AxisAngle4f(),
-                new Vector3f(1, 1, 1),
-                new AxisAngle4f()
-        ));
-
-        bd.setInterpolationDuration(0);
-        bd.setInterpolationDelay(0);
-
-        return bd;
-    }
-
-    private Interaction spawnInteraction(Location loc) {
-
-        Interaction interaction = (Interaction) player.getWorld()
-                .spawnEntity(loc.clone().add(0, 0.5, 0), EntityType.INTERACTION);
-
-        interaction.setInteractionWidth(1.0f);
-        interaction.setInteractionHeight(1.0f);
-
-        HideAndSeekPlugin.getInstance()
-                .getDisguiseManager()
-                .registerInteraction(interaction, this);
-
-        return interaction;
-    }
-
     public void updatePosition() {
 
         if (!solid && stand != null) {
             stand.teleport(player.getLocation().clone().add(0, -1.3, 0));
-        }
-
-        if (solid && display != null) {
-            display.teleport(solidLocation);
-            interaction.teleport(solidLocation.clone());
         }
     }
 
@@ -110,31 +62,6 @@ public class BlockDisguise {
         if (solid) {
             breakDisguise();
         }
-    }
-
-    public void breakDisguise() {
-
-        if (!solid) return;
-
-        HideAndSeekPlugin.getInstance()
-                .getDisguiseManager()
-                .unregisterSolid(solidLocation);
-
-        HideAndSeekPlugin.getInstance()
-                .getDisguiseManager()
-                .unregisterInteraction(interaction);
-
-        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 0.8f);
-
-        solid = false;
-
-        removeDisplay();
-        removeInteraction();
-        spawn();
-
-        player.setCollidable(true);
-        player.setInvulnerable(false);
-        player.setGravity(true);
     }
 
     public void checkStillness() {
@@ -151,34 +78,30 @@ public class BlockDisguise {
 
     private void turnIntoBlock() {
 
+        Location loc = player.getLocation().getBlock().getLocation();
+
+        if (!loc.getBlock().getType().isAir()) return;
+        if (!loc.clone().subtract(0, 1, 0).getBlock().getType().isSolid()) return;
+
         solid = true;
+        blockLocation = loc;
+        Block block = loc.getBlock();
+        originalMaterial = block.getType();
+        block.setType(material);
+        removeStand();
 
-        Location loc = findBestLocation();
-        solidLocation = loc;
-
-        player.teleport(loc.clone().add(0.5, 0, 0.5));
+        player.teleport(loc.clone().add(0.5, 1, 0.5));
         player.setVelocity(player.getVelocity().zero());
-        player.setFallDistance(0);
+        player.setInvisible(true);
         player.setCollidable(false);
         player.setInvulnerable(true);
         player.setGravity(false);
-        player.setInvisible(true);
-
-        removeStand();
-
-        Location centered = loc.clone().add(0.5, 0, 0.5);
-
-        display = spawnDisplay(centered);
-        interaction = spawnInteraction(centered);
-        solidLocation = centered;
-
         player.getWorld().spawnParticle(
                 Particle.BLOCK_CRACK,
                 loc.clone().add(0.5, 0.5, 0.5),
                 20,
                 material.createBlockData()
         );
-
         player.playSound(loc, Sound.BLOCK_STONE_PLACE, 1, 1);
 
         HideAndSeekPlugin.getInstance()
@@ -186,39 +109,34 @@ public class BlockDisguise {
                 .registerSolid(this, loc);
     }
 
-    public Location findBestLocation() {
-        Location base = player.getLocation();
-        Location best = null;
-        double bestDistance = Double.MAX_VALUE;
+    public void breakDisguise() {
 
-        int[][] offsets = {
-                {0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}
-        };
+        if (!solid) return;
 
-        for (int[] offset : offsets) {
-            Location check = base.clone().add(offset[0], 0, offset[1]).getBlock().getLocation();
+        blockLocation.getBlock().setType(originalMaterial);
 
-            if (!check.clone().subtract(0, 1, 0).getBlock().getType().isSolid()) continue;
+        HideAndSeekPlugin.getInstance()
+                .getDisguiseManager()
+                .unregisterSolid(blockLocation);
 
-            double distance = check.clone().add(0.5, 0.5, 0.5).distanceSquared(base);
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 0.8f);
 
-            if (distance < bestDistance) {
-                bestDistance = distance;
-                best = check;
-            }
-        }
+        solid = false;
 
-        if (best == null) {
-            best = base.clone().subtract(0, 1, 0).getBlock().getLocation();
-        }
+        player.setCollidable(true);
+        player.setInvulnerable(false);
+        player.setGravity(true);
 
-        return best;
+        spawn();
     }
 
     public void remove() {
+
+        if (solid && blockLocation != null) {
+            blockLocation.getBlock().setType(originalMaterial);
+        }
+
         removeStand();
-        removeDisplay();
-        removeInteraction();
 
         player.setInvisible(false);
         player.setCollidable(true);
@@ -227,20 +145,10 @@ public class BlockDisguise {
     }
 
     private void removeStand() {
-        if (stand != null && !stand.isDead()) stand.remove();
-        stand = null;
-    }
-
-    private void removeDisplay() {
-        if (display != null && !display.isDead()) display.remove();
-        display = null;
-    }
-
-    private void removeInteraction() {
-        if (interaction != null && !interaction.isDead()) {
-            interaction.remove();
+        if (stand != null && !stand.isDead()) {
+            stand.remove();
         }
-        interaction = null;
+        stand = null;
     }
 
     public Player getPlayer() {

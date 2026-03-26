@@ -73,6 +73,7 @@ public class GameManager {
             }
 
             gp.reset();
+            player.setCollidable(true);
             gp.setAlive(true);
         }
 
@@ -92,6 +93,7 @@ public class GameManager {
 
             GamePlayer gp = list.get(i);
             gp.reset();
+            gp.getPlayer().setCollidable(false);
 
             if (i < seekersAmount ) {
                 gp.setRole(PlayerRole.SEEKER);
