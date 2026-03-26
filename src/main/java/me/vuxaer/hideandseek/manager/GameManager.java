@@ -40,19 +40,21 @@ public class GameManager {
         return state;
     }
 
-    public void startGame() {
+    public boolean startGame() {
+
         selectedHiders.clear();
 
-        if (state != GameState.WAITING) return;
+        if (state != GameState.WAITING) return false;
 
-        if (playerManager.getAllPlayers().size() < 2) {
+        if (Bukkit.getOnlinePlayers().size() < 2) {
             Bukkit.broadcastMessage(plugin.getMessageManager().get("not_enough_players"));
-            return;
+            return false;
         }
 
         Bukkit.broadcastMessage(plugin.getMessageManager().get("game_starting"));
 
         assignTeams();
+        return true;
     }
 
     public void resetGame() {

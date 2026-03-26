@@ -32,11 +32,5 @@ public class JoinListener implements Listener {
         if (gp != null) {
             gp.reset();
         }
-
-        if (!plugin.getGameManager().isGameRunning()
-                && Bukkit.getOnlinePlayers().size() >= 2) {
-
-            plugin.getGameManager().startGame();
-        }
     }
 }

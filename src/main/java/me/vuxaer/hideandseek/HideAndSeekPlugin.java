@@ -1,8 +1,10 @@
 package me.vuxaer.hideandseek;
 
+import me.vuxaer.hideandseek.command.GameCommand;
 import me.vuxaer.hideandseek.listener.*;
 import me.vuxaer.hideandseek.manager.*;
 import me.vuxaer.hideandseek.net.HttpService;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HideAndSeekPlugin extends JavaPlugin {
@@ -32,7 +34,10 @@ public final class HideAndSeekPlugin extends JavaPlugin {
 
         httpService = new HttpService(this);
 
+        registerOnlinePlayers();
         registerListeners();
+
+        getCommand("hs").setExecutor(new GameCommand(this));
 
         disguiseManager.startTask();
     }
@@ -77,5 +82,13 @@ public final class HideAndSeekPlugin extends JavaPlugin {
 
     public HttpService getHttpService() {
         return httpService;
+    }
+
+    private void registerOnlinePlayers() {
+        for (Player p : getServer().getOnlinePlayers()) {
+            if (playerManager.getPlayer(p) == null) {
+                playerManager.addPlayer(p);
+            }
+        }
     }
 }

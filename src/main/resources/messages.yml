@@ -1,4 +1,4 @@
-language: en
+language: nl
 
 messages:
   en:
@@ -29,6 +29,12 @@ messages:
 
     you_are_solid: "§aYou are now solid!"
     you_moved: "§cYou moved!"
+
+    no_permission: "§cYou don't have permission!"
+    command_usage: "§eUsage: /hs <start|stop>"
+    command_unknown: "§cUnknown command."
+    command_stopped_reason: "Stopped by admin"
+    command_no_game: "§cNo game is currently running."
 
 
     scoreboard:
@@ -71,6 +77,12 @@ messages:
 
     you_are_solid: "§aJe bent nu een blok!"
     you_moved: "§cJe bewoog!"
+
+    no_permission: "§cJe hebt geen toestemming!"
+    command_usage: "§eGebruik: /hs <start|stop>"
+    command_unknown: "§cOnbekend commando."
+    command_stopped_reason: "Gestopt door admin"
+    command_no_game: "§cEr is op dit moment geen spel bezig."
 
     scoreboard:
       title: "§6§lSprookjesCraft"
