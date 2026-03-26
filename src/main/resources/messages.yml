@@ -23,6 +23,7 @@ messages:
     you_eliminated: "%prefix%§cYou have been eliminated"
 
     player_found: "%prefix%§c%attacker% §7found §a%victim%"
+    hider_left: " §8• §7%count% hider left"
     hiders_left: " §8• §7%count% hiders left"
 
     not_enough_players: "%prefix%§cNot enough players"
@@ -81,6 +82,7 @@ messages:
     you_eliminated: "%prefix%§cJe bent uitgeschakeld"
 
     player_found: "%prefix%§c%attacker% §7vond §a%victim%"
+    hider_left: " §8• §7%count% verstopper over"
     hiders_left: " §8• §7%count% verstoppers over"
 
     not_enough_players: "%prefix%§cNiet genoeg spelers"

@@ -291,10 +291,15 @@ public class GameManager {
                 )
         );
 
-        String extra = remaining > 0
-                ? plugin.getMessageManager().get("hiders_left",
-                Map.of("count", String.valueOf(remaining)))
-                : "";
+        String extra = "";
+        if (remaining > 0) {
+            String key = (remaining == 1) ? "hider_left" : "hiders_left";
+
+            extra = plugin.getMessageManager().get(
+                    key,
+                    Map.of("count", String.valueOf(remaining))
+            );
+        }
 
         Bukkit.broadcastMessage(base + extra);
 
