@@ -9,12 +9,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.*;
 
+import java.util.Map;
+
 public class BlockSelectorListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
 
-        if (!e.getView().getTitle().equals(BlockSelector.TITLE)) return;
+        String title = HideAndSeekPlugin.getInstance()
+                .getMessageManager()
+                .get("choose_block");
+
+        if (!e.getView().getTitle().equals(title)) return;
 
         e.setCancelled(true);
 
@@ -23,11 +29,15 @@ public class BlockSelectorListener implements Listener {
         Player player = (Player) e.getWhoClicked();
         Material mat = e.getCurrentItem().getType();
 
-        HideAndSeekPlugin.getInstance()
-                .getDisguiseManager()
-                .disguise(player, mat);
+        var plugin = HideAndSeekPlugin.getInstance();
 
-        player.sendMessage("§aSelected: " + mat.name());
+        plugin.getDisguiseManager().disguise(player, mat);
+        plugin.getGameManager().onHiderSelected(player);
+
+        player.sendMessage(
+                plugin.getMessageManager().get("selected_block", Map.of("block", mat.name()))
+        );
+
         player.closeInventory();
     }
 

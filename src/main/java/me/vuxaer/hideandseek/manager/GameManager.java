@@ -46,11 +46,11 @@ public class GameManager {
         if (state != GameState.WAITING) return;
 
         if (playerManager.getAllPlayers().size() < 2) {
-            Bukkit.broadcastMessage("Not enough players to start!");
+            Bukkit.broadcastMessage(plugin.getMessageManager().get("not_enough_players"));
             return;
         }
 
-        Bukkit.broadcastMessage("Game starting!");
+        Bukkit.broadcastMessage(plugin.getMessageManager().get("game_starting"));
 
         assignTeams();
     }
@@ -82,19 +82,23 @@ public class GameManager {
         List<GamePlayer> list = new ArrayList<>(playerManager.getAllPlayers());
         Collections.shuffle(list);
 
-        int half = list.size() / 2;
+        int seekersAmount  = Math.max(1, list.size() / 3);
 
         for (int i = 0; i < list.size(); i++) {
 
             GamePlayer gp = list.get(i);
             gp.reset();
 
-            if (i < half) {
+            if (i < seekersAmount ) {
                 gp.setRole(PlayerRole.SEEKER);
-                gp.getPlayer().sendMessage("You are a SEEKER!");
+                gp.getPlayer().sendMessage(
+                        plugin.getMessageManager().get("you_are_seeker")
+                );
             } else {
                 gp.setRole(PlayerRole.HIDER);
-                gp.getPlayer().sendMessage("You are a HIDER!");
+                gp.getPlayer().sendMessage(
+                        plugin.getMessageManager().get("you_are_hider")
+                );
 
                 selectedHiders.add(gp.getPlayer().getUniqueId());
 
@@ -128,13 +132,23 @@ public class GameManager {
                 }
 
                 if (time == 60 || time == 30 || time == 10 || time <= 5) {
-                    Bukkit.broadcastMessage("§e" + time + " seconds remaining");
+                    var msg = plugin.getMessageManager();
+
+                    String timeMsg = msg.getTime("second_remaining", "seconds_remaining", time);
+                    Bukkit.broadcastMessage(timeMsg);
                 }
 
-                if (time <= 5) {
-                    Bukkit.getOnlinePlayers().forEach(p ->
-                            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1)
-                    );
+                if (time <= 5 && time > 0) {
+                    for (Player p : Bukkit.getOnlinePlayers()) {
+
+                        p.sendTitle(
+                                "§e§l" + time,
+                                plugin.getMessageManager().get("get_ready"),
+                                0, 20, 0
+                        );
+
+                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.5f);
+                    }
                 }
 
                 time--;
@@ -149,7 +163,14 @@ public class GameManager {
         state = GameState.SEEKING;
         gameStartTime = System.currentTimeMillis();
 
-        Bukkit.broadcastMessage("Seekers can now move!");
+        Bukkit.broadcastMessage(
+                plugin.getMessageManager().get("seekers_move")
+        );
+
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.sendTitle("§a§lGO!", "", 5, 40, 10);
+            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        }
 
         startGameTimer();
     }
@@ -207,13 +228,18 @@ public class GameManager {
         );
 
         if (!victimGP.isDead()) {
-            victim.sendMessage("§cYou got hit! (§f" + victimGP.getHits() + "/3§c)");
+            victim.sendMessage(
+                    plugin.getMessageManager().get("you_got_hit",
+                            Map.of("hits", String.valueOf(victimGP.getHits())))
+            );
             return;
         }
 
         victimGP.setAlive(false);
 
-        victim.sendMessage("§cYou are eliminated!");
+        victim.sendMessage(
+                plugin.getMessageManager().get("you_eliminated")
+        );
         victim.setGameMode(GameMode.SPECTATOR);
 
         int remaining = (int) playerManager.getAllPlayers().stream()
@@ -221,12 +247,19 @@ public class GameManager {
                 .filter(GamePlayer::isAlive)
                 .count();
 
-        String message = remaining > 0
-                ? " §7(" + remaining + " hiders left)"
+        String base = plugin.getMessageManager().get("player_found",
+                Map.of(
+                        "attacker", attacker.getName(),
+                        "victim", victim.getName()
+                )
+        );
+
+        String extra = remaining > 0
+                ? plugin.getMessageManager().get("hiders_left",
+                Map.of("count", String.valueOf(remaining)))
                 : "";
 
-        Bukkit.broadcastMessage("§c" + attacker.getName()
-                + " §fhas found §a" + victim.getName() + message);
+        Bukkit.broadcastMessage(base + extra);
 
         checkWinCondition();
     }
@@ -260,9 +293,9 @@ public class GameManager {
         GameResult result = buildResult(winner, duration);
 
         if (winner.equals(SEEKERS)) {
-            Bukkit.broadcastMessage("§cSeekers have won the game!");
+            Bukkit.broadcastMessage(plugin.getMessageManager().get("seekers_win"));
         } else {
-            Bukkit.broadcastMessage("§aHiders have won the game!");
+            Bukkit.broadcastMessage(plugin.getMessageManager().get("hiders_win"));
         }
 
         sendResult(result);
@@ -318,7 +351,9 @@ public class GameManager {
 
         stopTimers();
 
-        Bukkit.broadcastMessage("Game cancelled: " + reason);
+        Bukkit.broadcastMessage(
+                plugin.getMessageManager().get("game_cancelled", Map.of("reason", reason))
+        );
 
         Bukkit.getScheduler().runTaskLater(plugin, this::resetGame, 40);
     }
@@ -332,7 +367,10 @@ public class GameManager {
         selectedHiders.remove(player.getUniqueId());
 
         if (selectedHiders.isEmpty()) {
-            Bukkit.broadcastMessage("All hiders are ready!");
+
+            Bukkit.broadcastMessage(
+                    plugin.getMessageManager().get("all_hiders_ready")
+            );
 
             state = GameState.HIDING;
             startHideCountdown();

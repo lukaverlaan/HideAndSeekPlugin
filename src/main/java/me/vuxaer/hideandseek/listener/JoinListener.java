@@ -33,8 +33,6 @@ public class JoinListener implements Listener {
             gp.reset();
         }
 
-        Bukkit.broadcastMessage(player.getName() + " joined!");
-
         if (!plugin.getGameManager().isGameRunning()
                 && Bukkit.getOnlinePlayers().size() >= 2) {
 

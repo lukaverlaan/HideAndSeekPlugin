@@ -3,6 +3,8 @@ package me.vuxaer.hideandseek.domain;
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
@@ -92,6 +94,22 @@ public class BlockDisguise {
         lastMoveTime = System.currentTimeMillis();
 
         if (solid) {
+
+            HideAndSeekPlugin.getInstance()
+                    .getDisguiseManager()
+                    .unregisterSolid(from.getBlock().getLocation());
+
+            player.spigot().sendMessage(
+                    net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                    new net.md_5.bungee.api.chat.TextComponent(
+                            HideAndSeekPlugin.getInstance()
+                                    .getMessageManager()
+                                    .get("you_moved")
+                    )
+            );
+
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 0.8f);
+
             solid = false;
 
             removeDisplay();
@@ -134,6 +152,24 @@ public class BlockDisguise {
         removeStand();
 
         display = spawnDisplay(loc);
+
+        player.getWorld().spawnParticle(
+                Particle.BLOCK_CRACK,
+                loc.clone().add(0.5, 0.5, 0.5),
+                20,
+                material.createBlockData()
+        );
+
+        player.playSound(loc, org.bukkit.Sound.BLOCK_STONE_PLACE, 1, 1);
+
+        player.spigot().sendMessage(
+                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                new net.md_5.bungee.api.chat.TextComponent(
+                        HideAndSeekPlugin.getInstance()
+                                .getMessageManager()
+                                .get("you_are_solid")
+                )
+        );
 
         HideAndSeekPlugin.getInstance()
                 .getDisguiseManager()

@@ -1,0 +1,86 @@
+language: en
+
+messages:
+  en:
+    choose_block: "§aChoose a block!"
+    selected_block: "§aSelected: %block%"
+
+    you_are_hider: "§aYou are a HIDER!"
+    you_are_seeker: "§cYou are a SEEKER!"
+
+    game_starting: "§eGame starting!"
+    all_hiders_ready: "§aAll hiders are ready!"
+    seekers_move: "§cSeekers can now move!"
+    game_cancelled: "§cGame cancelled: %reason%"
+
+    seekers_win: "§cSeekers have won the game!"
+    hiders_win: "§aHiders have won the game!"
+
+    you_got_hit: "§cYou got hit! (§f%hits%/3§c)"
+    you_eliminated: "§cYou are eliminated!"
+
+    player_found: "§c%attacker% §fhas found §a%victim%"
+    hiders_left: " §7(%count% hiders left)"
+
+    not_enough_players: "Not enough players to start!"
+    seconds_remaining: "§e%time% seconds remaining"
+    second_remaining: "§e%time% second remaining"
+    get_ready: "§7Get ready..."
+
+    you_are_solid: "§aYou are now solid!"
+    you_moved: "§cYou moved!"
+
+
+    scoreboard:
+      title: "§6§lSprookjesCraft"
+      seekers: "§cSeekers: §f%count%"
+      hiders: "§aHiders: §f%count%"
+      time: "§fTime: §e%time%s"
+      status: "§fStatus: §a%state%"
+
+    state:
+      waiting: "§7Waiting"
+      hiding: "§eHiding"
+      seeking: "§cSeeking"
+      ending: "§6Ending"
+
+  nl:
+    choose_block: "§aKies een blok!"
+    selected_block: "§aGekozen: %block%"
+
+    you_are_hider: "§aJe bent een VERSTOPPER!"
+    you_are_seeker: "§cJe bent een ZOEKER!"
+
+    game_starting: "§eSpel start!"
+    all_hiders_ready: "§aAlle verstoppers zijn klaar!"
+    seekers_move: "§cZoekers mogen nu bewegen!"
+    game_cancelled: "§cSpel geannuleerd: %reason%"
+
+    seekers_win: "§cZoekers hebben gewonnen!"
+    hiders_win: "§aVerstoppers hebben gewonnen!"
+
+    you_got_hit: "§cJe bent geraakt! (§f%hits%/3§c)"
+    you_eliminated: "§cJe bent uitgeschakeld!"
+
+    player_found: "§c%attacker% §fheeft §a%victim% gevonden"
+    hiders_left: " §7(%count% verstoppers over)"
+
+    not_enough_players: "Niet genoeg spelers om te starten!"
+    seconds_remaining: "§e%time% seconden resterend"
+    get_ready: "§7Maak je klaar..."
+
+    you_are_solid: "§aJe bent nu een blok!"
+    you_moved: "§cJe bewoog!"
+
+    scoreboard:
+      title: "§6§lSprookjesCraft"
+      seekers: "§cZoekers: §f%count%"
+      hiders: "§aVerstoppers: §f%count%"
+      time: "§fTijd: §e%time%s"
+      status: "§fStatus: §a%state%"
+
+    state:
+      waiting: "§7Wachten"
+      hiding: "§eVerstoppen"
+      seeking: "§cZoeken"
+      ending: "§6Einde"

@@ -1,10 +1,7 @@
 package me.vuxaer.hideandseek;
 
 import me.vuxaer.hideandseek.listener.*;
-import me.vuxaer.hideandseek.manager.DisguiseManager;
-import me.vuxaer.hideandseek.manager.GameManager;
-import me.vuxaer.hideandseek.manager.PlayerManager;
-import me.vuxaer.hideandseek.manager.ScoreboardManager;
+import me.vuxaer.hideandseek.manager.*;
 import me.vuxaer.hideandseek.net.HttpService;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -16,6 +13,7 @@ public final class HideAndSeekPlugin extends JavaPlugin {
     private PlayerManager playerManager;
     private DisguiseManager disguiseManager;
     private ScoreboardManager scoreboardManager;
+    private MessageManager messageManager;
 
     private HttpService httpService;
 
@@ -24,6 +22,8 @@ public final class HideAndSeekPlugin extends JavaPlugin {
         instance = this;
 
         saveDefaultConfig();
+
+        messageManager = new MessageManager(this);
 
         playerManager = new PlayerManager();
         gameManager = new GameManager(playerManager);
@@ -69,6 +69,10 @@ public final class HideAndSeekPlugin extends JavaPlugin {
 
     public ScoreboardManager getScoreboardManager() {
         return scoreboardManager;
+    }
+
+    public MessageManager getMessageManager() {
+        return messageManager;
     }
 
     public HttpService getHttpService() {

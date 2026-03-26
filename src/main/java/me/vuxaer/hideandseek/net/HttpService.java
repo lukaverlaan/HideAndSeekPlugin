@@ -2,11 +2,11 @@ package me.vuxaer.hideandseek.net;
 
 import com.google.gson.Gson;
 import me.vuxaer.hideandseek.domain.GameResult;
-import me.vuxaer.hideandseek.domain.GameResult;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.OutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
@@ -27,6 +27,9 @@ public class HttpService {
                 URL url = new URL(endpoint);
                 HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
+                conn.setConnectTimeout(3000);
+                conn.setReadTimeout(3000);
+
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
@@ -40,11 +43,17 @@ public class HttpService {
 
                 int responseCode = conn.getResponseCode();
 
-                plugin.getLogger().info("POST Response: " + responseCode);
+                if (responseCode >= 200 && responseCode < 300) {
+                    plugin.getLogger().info("Game result sent successfully! (" + responseCode + ")");
+                } else {
+                    plugin.getLogger().warning("API responded with code: " + responseCode);
+                }
+
+            } catch (ConnectException e) {
+                plugin.getLogger().warning("Could not send game result: API is offline or unreachable.");
 
             } catch (Exception e) {
-                plugin.getLogger().warning("POST failed: " + e.getMessage());
-                e.printStackTrace();
+                plugin.getLogger().warning("Failed to send game result: " + e.getMessage());
             }
 
         });
