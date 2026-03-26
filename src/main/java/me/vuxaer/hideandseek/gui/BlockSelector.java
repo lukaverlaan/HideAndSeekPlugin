@@ -49,18 +49,37 @@ public class BlockSelector {
 
         List<Material> randomBlocks = getRandomBlocks(2);
 
+        int[] slots = {3, 5};
+
         for (int i = 0; i < randomBlocks.size(); i++) {
             Material mat = randomBlocks.get(i);
 
             ItemStack item = new ItemStack(mat);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§e" + mat.name());
+
+            meta.setDisplayName("§e" + formatMaterial(mat));
             item.setItemMeta(meta);
 
-            inv.setItem(i + 3, item);
+            inv.setItem(slots[i], item);
         }
 
         player.openInventory(inv);
+    }
+
+    private static String formatMaterial(Material mat) {
+
+        String name = mat.name().toLowerCase().replace("_", " ");
+
+        String[] words = name.split(" ");
+        StringBuilder formatted = new StringBuilder();
+
+        for (String word : words) {
+            formatted.append(Character.toUpperCase(word.charAt(0)))
+                    .append(word.substring(1))
+                    .append(" ");
+        }
+
+        return formatted.toString().trim();
     }
 
     private static List<Material> getRandomBlocks(int amount) {

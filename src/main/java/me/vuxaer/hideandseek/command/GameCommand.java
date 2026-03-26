@@ -59,7 +59,7 @@ public class GameCommand implements CommandExecutor {
                 }
 
                 plugin.getGameManager().cancelGame(
-                        msg.get("command_stopped_reason")
+                        msg.get("command_stopped_reason", Map.of("player", sender.getName()))
                 );
             }
 

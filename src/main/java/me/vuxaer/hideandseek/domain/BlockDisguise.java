@@ -21,6 +21,9 @@ public class BlockDisguise {
 
     private ArmorStand stand;
     private BlockDisplay display;
+    private Interaction interaction;
+
+    private Location solidLocation;
 
     public BlockDisguise(Player player, Material material) {
         this.player = player;
@@ -29,10 +32,10 @@ public class BlockDisguise {
     }
 
     public void spawn() {
-
         player.setInvisible(true);
 
         removeDisplay();
+        removeInteraction();
 
         if (stand == null) {
             stand = spawnStand(player.getLocation());
@@ -47,7 +50,6 @@ public class BlockDisguise {
         as.setInvisible(true);
         as.setGravity(false);
         as.setMarker(true);
-
         as.getEquipment().setHelmet(new ItemStack(material));
 
         return as;
@@ -61,7 +63,7 @@ public class BlockDisguise {
         bd.setBlock(material.createBlockData());
 
         bd.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
+                new Vector3f(-0.5f, 0, -0.5f),
                 new AxisAngle4f(),
                 new Vector3f(1, 1, 1),
                 new AxisAngle4f()
@@ -73,52 +75,66 @@ public class BlockDisguise {
         return bd;
     }
 
+    private Interaction spawnInteraction(Location loc) {
+
+        Interaction interaction = (Interaction) player.getWorld()
+                .spawnEntity(loc.clone().add(0, 0.5, 0), EntityType.INTERACTION);
+
+        interaction.setInteractionWidth(1.0f);
+        interaction.setInteractionHeight(1.0f);
+
+        HideAndSeekPlugin.getInstance()
+                .getDisguiseManager()
+                .registerInteraction(interaction, this);
+
+        return interaction;
+    }
+
     public void updatePosition() {
 
         if (!solid && stand != null) {
-            Location loc = player.getLocation();
-
-            stand.teleport(loc.clone().add(0, -1.3, 0));
+            stand.teleport(player.getLocation().clone().add(0, -1.3, 0));
         }
 
         if (solid && display != null) {
-            Location loc = player.getLocation().getBlock().getLocation();
-            display.teleport(loc);
+            display.teleport(solidLocation);
+            interaction.teleport(solidLocation.clone());
         }
     }
 
     public void onMove(Location from, Location to) {
-
         if (from.distanceSquared(to) < 0.001) return;
 
         lastMoveTime = System.currentTimeMillis();
 
         if (solid) {
-
-            HideAndSeekPlugin.getInstance()
-                    .getDisguiseManager()
-                    .unregisterSolid(from.getBlock().getLocation());
-
-            player.spigot().sendMessage(
-                    net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                    new net.md_5.bungee.api.chat.TextComponent(
-                            HideAndSeekPlugin.getInstance()
-                                    .getMessageManager()
-                                    .get("you_moved")
-                    )
-            );
-
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 0.8f);
-
-            solid = false;
-
-            removeDisplay();
-            spawn();
-
-            player.setCollidable(true);
-            player.setInvulnerable(false);
-            player.setGravity(true);
+            breakDisguise();
         }
+    }
+
+    public void breakDisguise() {
+
+        if (!solid) return;
+
+        HideAndSeekPlugin.getInstance()
+                .getDisguiseManager()
+                .unregisterSolid(solidLocation);
+
+        HideAndSeekPlugin.getInstance()
+                .getDisguiseManager()
+                .unregisterInteraction(interaction);
+
+        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1, 0.8f);
+
+        solid = false;
+
+        removeDisplay();
+        removeInteraction();
+        spawn();
+
+        player.setCollidable(true);
+        player.setInvulnerable(false);
+        player.setGravity(true);
     }
 
     public void checkStillness() {
@@ -134,8 +150,11 @@ public class BlockDisguise {
     }
 
     private void turnIntoBlock() {
+
         solid = true;
+
         Location loc = findBestLocation();
+        solidLocation = loc;
 
         player.teleport(loc.clone().add(0.5, 0, 0.5));
         player.setVelocity(player.getVelocity().zero());
@@ -147,7 +166,11 @@ public class BlockDisguise {
 
         removeStand();
 
-        display = spawnDisplay(loc);
+        Location centered = loc.clone().add(0.5, 0, 0.5);
+
+        display = spawnDisplay(centered);
+        interaction = spawnInteraction(centered);
+        solidLocation = centered;
 
         player.getWorld().spawnParticle(
                 Particle.BLOCK_CRACK,
@@ -157,15 +180,6 @@ public class BlockDisguise {
         );
 
         player.playSound(loc, Sound.BLOCK_STONE_PLACE, 1, 1);
-
-        player.spigot().sendMessage(
-                net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
-                new net.md_5.bungee.api.chat.TextComponent(
-                        HideAndSeekPlugin.getInstance()
-                                .getMessageManager()
-                                .get("you_are_solid")
-                )
-        );
 
         HideAndSeekPlugin.getInstance()
                 .getDisguiseManager()
@@ -178,17 +192,16 @@ public class BlockDisguise {
         double bestDistance = Double.MAX_VALUE;
 
         int[][] offsets = {
-                {0, 0},
-                {1, 0},
-                {-1, 0},
-                {0, 1},
-                {0, -1}
+                {0, 0}, {1, 0}, {-1, 0}, {0, 1}, {0, -1}
         };
 
         for (int[] offset : offsets) {
             Location check = base.clone().add(offset[0], 0, offset[1]).getBlock().getLocation();
+
             if (!check.clone().subtract(0, 1, 0).getBlock().getType().isSolid()) continue;
+
             double distance = check.clone().add(0.5, 0.5, 0.5).distanceSquared(base);
+
             if (distance < bestDistance) {
                 bestDistance = distance;
                 best = check;
@@ -203,9 +216,9 @@ public class BlockDisguise {
     }
 
     public void remove() {
-
         removeStand();
         removeDisplay();
+        removeInteraction();
 
         player.setInvisible(false);
         player.setCollidable(true);
@@ -214,17 +227,20 @@ public class BlockDisguise {
     }
 
     private void removeStand() {
-        if (stand != null && !stand.isDead()) {
-            stand.remove();
-        }
+        if (stand != null && !stand.isDead()) stand.remove();
         stand = null;
     }
 
     private void removeDisplay() {
-        if (display != null && !display.isDead()) {
-            display.remove();
-        }
+        if (display != null && !display.isDead()) display.remove();
         display = null;
+    }
+
+    private void removeInteraction() {
+        if (interaction != null && !interaction.isDead()) {
+            interaction.remove();
+        }
+        interaction = null;
     }
 
     public Player getPlayer() {

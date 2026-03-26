@@ -39,7 +39,7 @@ messages:
     command_unknown: "%prefix%§cUnknown command"
     command_no_game: "%prefix%§cNo game running"
     command_game_running: "%prefix%§cGame already running"
-    # command stopped reason mist nog
+    command_stopped_reason: "Stopped by an %player%"
     command_reload: "%prefix%§aConfigurations reloaded"
 
     command_help_header: "§6§lHide & Seek"
@@ -98,6 +98,7 @@ messages:
     command_unknown: "%prefix%§cOnbekend commando"
     command_no_game: "%prefix%§cEr is geen spel bezig"
     command_game_running: "%prefix%§cEr is al een spel bezig"
+    command_stopped_reason: "Gestopt door %player%"
     command_reload: "%prefix%§aConfiguraties herladen"
 
     command_help_header: "§6§lHide & Seek"

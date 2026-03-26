@@ -4,6 +4,7 @@ import me.vuxaer.hideandseek.domain.BlockDisguise;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -15,6 +16,7 @@ public class DisguiseManager {
 
     private final Map<String, BlockDisguise> solidDisguises = new HashMap<>();
     private final Set<BlockDisguise> activeDisguises = new HashSet<>();
+    private final Map<Interaction, BlockDisguise> interactionMap = new HashMap<>();
 
     public DisguiseManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -95,5 +97,18 @@ public class DisguiseManager {
 
         activeDisguises.clear();
         solidDisguises.clear();
+        interactionMap.clear();
+    }
+
+    public void registerInteraction(Interaction interaction, BlockDisguise disguise) {
+        interactionMap.put(interaction, disguise);
+    }
+
+    public void unregisterInteraction(Interaction interaction) {
+        interactionMap.remove(interaction);
+    }
+
+    public BlockDisguise getByInteraction(Interaction interaction) {
+        return interactionMap.get(interaction);
     }
 }

@@ -54,8 +54,8 @@ public final class HideAndSeekPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new QuitListener(), this);
         getServer().getPluginManager().registerEvents(new MoveListener(), this);
         getServer().getPluginManager().registerEvents(new DamageListener(), this);
-        getServer().getPluginManager().registerEvents(new BlockHitListener(), this);
         getServer().getPluginManager().registerEvents(new BlockSelectorListener(), this);
+        getServer().getPluginManager().registerEvents(new InteractionHitListener(), this);
     }
 
     public static HideAndSeekPlugin getInstance() {
