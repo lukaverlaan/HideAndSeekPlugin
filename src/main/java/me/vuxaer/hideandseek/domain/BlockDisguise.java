@@ -134,16 +134,12 @@ public class BlockDisguise {
     }
 
     private void turnIntoBlock() {
-
         solid = true;
-
-        Location loc = player.getLocation().getBlock().getLocation();
+        Location loc = findBestLocation();
 
         player.teleport(loc.clone().add(0.5, 0, 0.5));
-
         player.setVelocity(player.getVelocity().zero());
         player.setFallDistance(0);
-
         player.setCollidable(false);
         player.setInvulnerable(true);
         player.setGravity(false);
@@ -160,7 +156,7 @@ public class BlockDisguise {
                 material.createBlockData()
         );
 
-        player.playSound(loc, org.bukkit.Sound.BLOCK_STONE_PLACE, 1, 1);
+        player.playSound(loc, Sound.BLOCK_STONE_PLACE, 1, 1);
 
         player.spigot().sendMessage(
                 net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
@@ -174,6 +170,36 @@ public class BlockDisguise {
         HideAndSeekPlugin.getInstance()
                 .getDisguiseManager()
                 .registerSolid(this, loc);
+    }
+
+    public Location findBestLocation() {
+        Location base = player.getLocation();
+        Location best = null;
+        double bestDistance = Double.MAX_VALUE;
+
+        int[][] offsets = {
+                {0, 0},
+                {1, 0},
+                {-1, 0},
+                {0, 1},
+                {0, -1}
+        };
+
+        for (int[] offset : offsets) {
+            Location check = base.clone().add(offset[0], 0, offset[1]).getBlock().getLocation();
+            if (!check.clone().subtract(0, 1, 0).getBlock().getType().isSolid()) continue;
+            double distance = check.clone().add(0.5, 0.5, 0.5).distanceSquared(base);
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = check;
+            }
+        }
+
+        if (best == null) {
+            best = base.clone().subtract(0, 1, 0).getBlock().getLocation();
+        }
+
+        return best;
     }
 
     public void remove() {

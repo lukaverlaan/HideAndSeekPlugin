@@ -39,6 +39,7 @@ messages:
     command_unknown: "%prefix%§cUnknown command"
     command_no_game: "%prefix%§cNo game running"
     command_game_running: "%prefix%§cGame already running"
+    # command stopped reason mist nog
     command_reload: "%prefix%§aConfigurations reloaded"
 
     command_help_header: "§6§lHide & Seek"
