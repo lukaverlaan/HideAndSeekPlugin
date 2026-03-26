@@ -97,7 +97,7 @@ public class ScoreboardManager {
             case WAITING -> msg.get("state.waiting");
             case HIDING -> msg.get("state.hiding");
             case SEEKING -> msg.get("state.seeking");
-            case ENDING -> msg.get("state.ending");
+            case ENDING -> msg.get("state.finished");
         };
     }
 }

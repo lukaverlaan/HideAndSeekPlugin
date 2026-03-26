@@ -56,10 +56,9 @@ messages:
       status: "§fStatus: §a%state%"
 
     state:
-      waiting: "§7Waiting"
       hiding: "§eHiding"
       seeking: "§cSeeking"
-      ending: "§6Ending"
+      finished: "§6Finished"
 
   nl:
     choose_block: "%prefix%§eKies een blok"
@@ -114,7 +113,6 @@ messages:
       status: "§fStatus: §a%state%"
 
     state:
-      waiting: "§7Wachten"
       hiding: "§eVerstoppen"
       seeking: "§cZoeken"
-      ending: "§6Einde"
+      finished: "§6Beëindigd"

@@ -11,6 +11,8 @@ import org.bukkit.GameMode;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -113,6 +115,14 @@ public class GameManager {
 
         if (hideTimer != null) hideTimer.cancel();
 
+        for (GamePlayer gp : playerManager.getAllPlayers()) {
+            if (gp.getRole() == PlayerRole.SEEKER) {
+                gp.getPlayer().addPotionEffect(
+                        new PotionEffect(PotionEffectType.BLINDNESS, 20 * 60, 1, false, false)
+                );
+            }
+        }
+
         hideTimer = new BukkitRunnable() {
 
             int time = 60;
@@ -165,6 +175,10 @@ public class GameManager {
         state = GameState.SEEKING;
         gameStartTime = System.currentTimeMillis();
 
+        for (GamePlayer gp : playerManager.getAllPlayers()) {
+            gp.getPlayer().removePotionEffect(PotionEffectType.BLINDNESS);
+        }
+
         Bukkit.broadcastMessage(
                 plugin.getMessageManager().get("seekers_move")
         );
@@ -212,11 +226,25 @@ public class GameManager {
         GamePlayer victimGP = playerManager.getPlayer(victim);
 
         if (attackerGP == null || victimGP == null) return;
-
         if (attackerGP.getRole() != PlayerRole.SEEKER ||
                 victimGP.getRole() != PlayerRole.HIDER) return;
-
         if (!victimGP.canBeHit()) return;
+
+        var disguise = plugin.getDisguiseManager().getDisguiseByPlayer(victim);
+
+        if (disguise != null && !disguise.isSolid()) {
+
+            var direction = victim.getLocation().toVector()
+                    .subtract(attacker.getLocation().toVector())
+                    .normalize();
+
+            direction.setY(0.35);
+
+            victim.setVelocity(direction.multiply(0.4));
+
+            attacker.playSound(attacker.getLocation(),
+                    Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1, 1);
+        }
 
         victimGP.registerHit();
 
@@ -237,11 +265,18 @@ public class GameManager {
             return;
         }
 
+        if (disguise != null) {
+            plugin.getDisguiseManager().removeDisguise(disguise);
+        }
+
         victimGP.setAlive(false);
 
         victim.sendMessage(
                 plugin.getMessageManager().get("you_eliminated")
         );
+
+        victim.playSound(victim.getLocation(), Sound.ENTITY_WITHER_DEATH, 1, 1);
+        victim.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, victim.getLocation(), 1);
         victim.setGameMode(GameMode.SPECTATOR);
 
         int remaining = (int) playerManager.getAllPlayers().stream()
@@ -291,13 +326,23 @@ public class GameManager {
         stopTimers();
 
         long duration = (System.currentTimeMillis() - gameStartTime) / 1000;
-
         GameResult result = buildResult(winner, duration);
 
         if (winner.equals(SEEKERS)) {
             Bukkit.broadcastMessage(plugin.getMessageManager().get("seekers_win"));
         } else {
             Bukkit.broadcastMessage(plugin.getMessageManager().get("hiders_win"));
+        }
+
+        for (Player p : Bukkit.getOnlinePlayers()) {
+
+            p.sendTitle(
+                    "§6§lGAME OVER",
+                    winner.equals(SEEKERS) ? "§cSeekers win!" : "§aHiders win!",
+                    10, 60, 10
+            );
+
+            p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
         }
 
         sendResult(result);
