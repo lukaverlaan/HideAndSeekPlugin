@@ -3,30 +3,26 @@ package me.vuxaer.hideandseek.listener;
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
 import me.vuxaer.hideandseek.domain.BlockDisguise;
 import me.vuxaer.hideandseek.util.PlayerRole;
+import org.bukkit.entity.Interaction;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.entity.Player;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.util.Vector;
 
-public class BlockHitListener implements Listener {
+public class InteractionHitListener implements Listener {
 
     @EventHandler
-    public void onBlockHit(PlayerInteractEvent event) {
-        if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;
-        if (event.getClickedBlock() == null) return;
+    public void onHit(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Interaction interaction)) return;
+        if (!(event.getDamager() instanceof Player attacker)) return;
 
         var plugin = HideAndSeekPlugin.getInstance();
         var gm = plugin.getGameManager();
+        var gp = plugin.getPlayerManager().getPlayer(attacker);
+        if (gp == null || gp.getRole() != PlayerRole.SEEKER) return;
 
-        Player attacker = event.getPlayer();
-
-        if (plugin.getPlayerManager().getPlayer(attacker).getRole() != PlayerRole.SEEKER) return;
-
-        var loc = event.getClickedBlock().getLocation();
-        BlockDisguise disguise = plugin.getDisguiseManager().getDisguise(loc);
-
+        BlockDisguise disguise = plugin.getDisguiseManager().getByInteraction(interaction);
         if (disguise == null) return;
 
         event.setCancelled(true);
@@ -38,11 +34,8 @@ public class BlockHitListener implements Listener {
                 .normalize();
         direction.setY(0.35);
 
-        if (disguise.isSolid()) {
-            disguise.breakDisguise();
-        }
-
         victim.setVelocity(direction.multiply(0.4));
+
         gm.handleHit(attacker, victim);
     }
 }

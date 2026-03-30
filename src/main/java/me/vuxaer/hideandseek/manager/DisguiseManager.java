@@ -43,11 +43,23 @@ public class DisguiseManager {
         return solidDisguises.get(toKey(loc));
     }
 
-    public BlockDisguise getDisguiseByPlayer(org.bukkit.entity.Player player) {
+    public BlockDisguise getDisguiseByPlayer(Player player) {
         return activeDisguises.stream()
                 .filter(d -> d.getPlayer().equals(player))
                 .findFirst()
                 .orElse(null);
+    }
+
+    public BlockDisguise getByInteraction(Interaction interaction) {
+        return interactionMap.get(interaction);
+    }
+
+    public void registerInteraction(Interaction interaction, BlockDisguise disguise) {
+        interactionMap.put(interaction, disguise);
+    }
+
+    public void unregisterInteraction(Interaction interaction) {
+        interactionMap.remove(interaction);
     }
 
     public void disguise(Player player, Material material) {

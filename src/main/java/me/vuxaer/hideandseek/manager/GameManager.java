@@ -67,6 +67,12 @@ public class GameManager {
         }
         plugin.getScoreboardManager().clearAll();
         state = GameState.WAITING;
+
+        for (Player p1 : Bukkit.getOnlinePlayers()) {
+            for (Player p2 : Bukkit.getOnlinePlayers()) {
+                p1.showPlayer(plugin, p2);
+            }
+        }
     }
 
     private void assignTeams() {
@@ -100,6 +106,20 @@ public class GameManager {
                 player.sendMessage(plugin.getMessageManager().get("you_are_hider"));
                 selectedHiders.add(player.getUniqueId());
                 BlockSelector.open(player);
+            }
+
+            for (GamePlayer gp1 : playerManager.getAllPlayers()) {
+                Player p1 = gp1.getPlayer();
+
+                for (GamePlayer gp2 : playerManager.getAllPlayers()) {
+                    Player p2 = gp2.getPlayer();
+
+                    if (gp1.getRole() == PlayerRole.SEEKER &&
+                            gp2.getRole() == PlayerRole.HIDER) {
+
+                        p1.hidePlayer(plugin, p2);
+                    }
+                }
             }
         }
         startHiderSelectionTimeout();
