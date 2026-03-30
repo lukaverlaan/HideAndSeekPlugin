@@ -19,15 +19,11 @@ public class GameManager {
 
     private static final String SEEKERS = "SEEKERS";
     private static final String HIDERS = "HIDERS";
-
     private final Set<UUID> selectedHiders = new HashSet<>();
     private final Set<UUID> forceClosed = new HashSet<>();
-
     private final HideAndSeekPlugin plugin = HideAndSeekPlugin.getInstance();
     private final PlayerManager playerManager;
-
     private GameState state = GameState.WAITING;
-
     private BukkitRunnable hideTimer;
     private BukkitRunnable gameTimer;
     private long gameStartTime;
@@ -448,7 +444,10 @@ public class GameManager {
                         forceClosed.add(player.getUniqueId());
                         player.closeInventory();
 
-                        Material random = BlockSelector.getRandomBlock();
+                        List<Material> options = BlockSelector.getPlayerBlocks(player);
+                        Material random = options.get(new Random().nextInt(options.size()));
+                        BlockSelector.clear(player);
+
                         disguiseManager.disguise(player, random);
 
                         player.sendMessage(
