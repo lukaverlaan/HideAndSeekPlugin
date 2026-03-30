@@ -334,6 +334,8 @@ public class GameManager {
         state = GameState.ENDING;
         stopTimers();
 
+        plugin.getScoreboardManager().updateAll(0);
+
         long duration = (System.currentTimeMillis() - gameStartTime) / 1000;
         GameResult result = buildResult(winner, duration);
 
@@ -347,7 +349,7 @@ public class GameManager {
 
             p.sendTitle(
                     "§6§lGAME OVER",
-                    winner.equals(SEEKERS) ? plugin.getMessageManager().get("seekers_win") : plugin.getMessageManager().get("hiders_win"),
+                    winner.equals(SEEKERS) ? plugin.getMessageManager().get("seekers_win_endtitle") : plugin.getMessageManager().get("hiders_win_endtitle"),
                     10, 60, 10
             );
 

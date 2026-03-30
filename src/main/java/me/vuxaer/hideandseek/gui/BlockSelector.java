@@ -66,7 +66,7 @@ public class BlockSelector {
         player.openInventory(inv);
     }
 
-    private static String formatMaterial(Material mat) {
+    public static String formatMaterial(Material mat) {
 
         String name = mat.name().toLowerCase().replace("_", " ");
 

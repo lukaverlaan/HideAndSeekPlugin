@@ -19,6 +19,9 @@ messages:
     seekers_win: "%prefix%§cSeekers win!"
     hiders_win: "%prefix%§aHiders win!"
 
+    seekers_win_endtitle: "§cSeekers win!"
+    hiders_win_endtitle: "§aHiders win!"
+
     you_got_hit: "%prefix%§cYou were hit §7(%hits%/3)"
     you_eliminated: "%prefix%§cYou have been eliminated"
 
@@ -77,6 +80,9 @@ messages:
 
     seekers_win: "%prefix%§cZoekers winnen!"
     hiders_win: "%prefix%§aVerstoppers winnen!"
+
+    seekers_win_endtitle: "§cZoekers zijn gewonnen!"
+    hiders_win_endtitle: "§aVerstoppers zijn gewonnen!"
 
     you_got_hit: "%prefix%§cJe bent geraakt §7(%hits%/3)"
     you_eliminated: "%prefix%§cJe bent uitgeschakeld"

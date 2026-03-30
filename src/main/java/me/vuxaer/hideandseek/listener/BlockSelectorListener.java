@@ -34,9 +34,7 @@ public class BlockSelectorListener implements Listener {
         plugin.getDisguiseManager().disguise(player, mat);
         plugin.getGameManager().onHiderSelected(player);
 
-        player.sendMessage(
-                plugin.getMessageManager().get("selected_block", Map.of("block", mat.name()))
-        );
+        player.sendMessage(plugin.getMessageManager().get("selected_block", Map.of("block", "§e" + BlockSelector.formatMaterial(mat))));
 
         player.closeInventory();
     }
