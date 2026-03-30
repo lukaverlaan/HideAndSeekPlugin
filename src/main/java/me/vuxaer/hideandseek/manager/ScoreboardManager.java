@@ -21,22 +21,13 @@ public class ScoreboardManager {
     }
 
     public void updateAll(int timeLeft) {
-        int hiders = (int) plugin.getPlayerManager().getAllPlayers().stream()
-                .filter(p -> p.getRole() == PlayerRole.HIDER && p.isAlive())
-                .count();
-
-        int seekers = (int) plugin.getPlayerManager().getAllPlayers().stream()
-                .filter(p -> p.getRole() == PlayerRole.SEEKER && p.isAlive())
-                .count();
-
         GameState state = plugin.getGameManager().getState();
+        var msg = plugin.getMessageManager();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
 
             Scoreboard board = boards.computeIfAbsent(player, p -> {
                 Scoreboard b = Bukkit.getScoreboardManager().getNewScoreboard();
-
-                var msg = plugin.getMessageManager();
 
                 Objective obj = b.registerNewObjective(
                         "game",
@@ -45,8 +36,8 @@ public class ScoreboardManager {
                 );
 
                 obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-
                 p.setScoreboard(b);
+
                 return b;
             });
 
@@ -57,27 +48,45 @@ public class ScoreboardManager {
                 board.resetScores(entry);
             }
 
-            var msg = plugin.getMessageManager();
-
-            obj.getScore("§8play.sprookjescraft.nl").setScore(0);
-            obj.getScore("§8§m────────────§r").setScore(1);
-
-            obj.getScore(msg.get("scoreboard.seekers",
-                    Map.of("count", String.valueOf(seekers)))).setScore(2);
-
-            obj.getScore(msg.get("scoreboard.hiders",
-                    Map.of("count", String.valueOf(hiders)))).setScore(3);
-
-            obj.getScore("§7 ").setScore(4); // unieke lege regel
-
-            obj.getScore(msg.get("scoreboard.time",
-                    Map.of("time", String.valueOf(timeLeft)))).setScore(5);
-
+            int score = 15;
+            obj.getScore("§7Hide & Seek").setScore(score--);
+            obj.getScore("§8§m────────────").setScore(score--);
             obj.getScore(msg.get("scoreboard.status",
-                    Map.of("state", formatState(state)))).setScore(6);
+                    Map.of("state", formatState(state)))).setScore(score--);
+            obj.getScore(msg.get("scoreboard.time",
+                    Map.of("time", String.valueOf(timeLeft)))).setScore(score--);
+            obj.getScore("§7 ").setScore(score--);
+            obj.getScore(msg.get("scoreboard.seekers", Map.of("count", String.valueOf(getAliveSeekers())))).setScore(score--);
 
-            obj.getScore("§8§m────────────").setScore(7);
-            obj.getScore("§7Hide & Seek").setScore(8);
+            int shownSeekers = 0;
+            for (var gp : plugin.getPlayerManager().getAllPlayers()) {
+                if (gp.getRole() == PlayerRole.SEEKER && gp.isAlive()) {
+                    if (score <= 0 || shownSeekers >= 5) break;
+                    String name = "§c" + gp.getPlayer().getName();
+                    obj.getScore(name + "§" + score).setScore(score--);
+                    shownSeekers++;
+                }
+            }
+
+            obj.getScore("§0 ").setScore(score--);
+            obj.getScore(msg.get("scoreboard.hiders",
+                    Map.of("count", String.valueOf(getAliveHiders())))).setScore(score--);;
+
+            int shownHiders = 0;
+            for (var gp : plugin.getPlayerManager().getAllPlayers()) {
+                if (gp.getRole() == PlayerRole.HIDER) {
+                    if (score <= 0 || shownHiders >= 7) break;
+
+                    String name;
+                    if (gp.isAlive()) {
+                        name = "§a" + gp.getPlayer().getName();
+                    } else {
+                        name = "§7§m" + gp.getPlayer().getName();
+                    }
+                    obj.getScore(name + "§" + score).setScore(score--);
+                    shownHiders++;
+                }
+            }
         }
     }
 
@@ -89,7 +98,6 @@ public class ScoreboardManager {
     }
 
     private String formatState(GameState state) {
-
         var msg = plugin.getMessageManager();
 
         return switch (state) {
@@ -98,5 +106,17 @@ public class ScoreboardManager {
             case SEEKING -> msg.get("state.seeking");
             case ENDING -> msg.get("state.finished");
         };
+    }
+
+    private int getAliveSeekers() {
+        return (int) plugin.getPlayerManager().getAllPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.SEEKER && p.isAlive())
+                .count();
+    }
+
+    private int getAliveHiders() {
+        return (int) plugin.getPlayerManager().getAllPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.HIDER && p.isAlive())
+                .count();
     }
 }

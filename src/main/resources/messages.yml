@@ -63,8 +63,8 @@ messages:
 
     scoreboard:
       title: "§6§lSprookjesCraft"
-      seekers: "§cSeekers: §f%count%"
-      hiders: "§aHiders: §f%count%"
+      seekers: "§c§lSeekers: §f%count%"
+      hiders: "§a§lHiders: §f%count%"
       time: "§fRemaining time: §e%time%s"
       status: "§fStatus: §a%state%"
 
@@ -133,8 +133,8 @@ messages:
 
     scoreboard:
       title: "§6§lSprookjesCraft"
-      seekers: "§cZoekers: §f%count%"
-      hiders: "§aVerstoppers: §f%count%"
+      seekers: "§c§lZoekers: §f%count%"
+      hiders: "§a§lVerstoppers: §f%count%"
       time: "§fResterende tijd: §e%time%s"
       status: "§fStatus: §a%state%"
 
