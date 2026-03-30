@@ -14,21 +14,17 @@ public class GameResult {
     private final long durationSeconds;
 
     public GameResult(List<Player> seekers, List<Player> hiders, String winner, long durationSeconds) {
-
         this.seekers = seekers.stream()
                 .map(PlayerData::new)
                 .collect(Collectors.toList());
-
         this.hiders = hiders.stream()
                 .map(PlayerData::new)
                 .collect(Collectors.toList());
-
         this.winner = winner;
         this.durationSeconds = durationSeconds;
     }
 
     public static class PlayerData {
-
         private final UUID uuid;
         private final String name;
 

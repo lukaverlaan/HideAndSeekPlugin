@@ -51,16 +51,13 @@ public class DisguiseManager {
     }
 
     public void disguise(Player player, Material material) {
-
         BlockDisguise existing = getDisguiseByPlayer(player);
         if (existing != null) {
             removeDisguise(existing);
         }
 
         BlockDisguise disguise = new BlockDisguise(player, material);
-
         addDisguise(disguise);
-
         disguise.spawn();
     }
 
@@ -75,18 +72,14 @@ public class DisguiseManager {
 
     public void startTask() {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-
             for (BlockDisguise disguise : new HashSet<>(activeDisguises)) {
-
                 if (disguise.getPlayer() == null || !disguise.getPlayer().isOnline()) {
                     removeDisguise(disguise);
                     continue;
                 }
-
                 disguise.updatePosition();
                 disguise.checkStillness();
             }
-
         }, 1L, 1L);
     }
 
@@ -94,21 +87,8 @@ public class DisguiseManager {
         for (BlockDisguise disguise : activeDisguises) {
             disguise.remove();
         }
-
         activeDisguises.clear();
         solidDisguises.clear();
         interactionMap.clear();
-    }
-
-    public void registerInteraction(Interaction interaction, BlockDisguise disguise) {
-        interactionMap.put(interaction, disguise);
-    }
-
-    public void unregisterInteraction(Interaction interaction) {
-        interactionMap.remove(interaction);
-    }
-
-    public BlockDisguise getByInteraction(Interaction interaction) {
-        return interactionMap.get(interaction);
     }
 }

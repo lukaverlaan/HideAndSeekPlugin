@@ -20,9 +20,7 @@ public class MessageManager {
     }
 
     public void load() {
-
         File file = new File(plugin.getDataFolder(), "messages.yml");
-
         if (!file.exists()) {
             plugin.saveResource("messages.yml", false);
         }
@@ -34,33 +32,24 @@ public class MessageManager {
     }
 
     public String get(String path) {
-
         String fullPath = "messages." + language + "." + path;
-
         String msg = config.getString(fullPath);
-
         if (msg == null) {
             return "§cMissing message: " + path;
         }
-
         return apply(msg);
     }
 
     public String get(String path, Map<String, String> placeholders) {
-
         String msg = get(path);
-
         for (Map.Entry<String, String> entry : placeholders.entrySet()) {
             msg = msg.replace("%" + entry.getKey() + "%", entry.getValue());
         }
-
         return msg;
     }
 
     public String getTime(String singularKey, String pluralKey, int time) {
-
         String key = (time == 1) ? singularKey : pluralKey;
-
         return get(key, Map.of("time", String.valueOf(time)));
     }
 

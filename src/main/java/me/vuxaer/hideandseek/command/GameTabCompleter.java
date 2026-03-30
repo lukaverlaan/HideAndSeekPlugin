@@ -13,22 +13,32 @@ public class GameTabCompleter implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 
         List<String> completions = new ArrayList<>();
-
         if (args.length == 1) {
-
             if (sender.hasPermission("hs.admin")) {
                 completions.add("start");
                 completions.add("stop");
                 completions.add("reload");
+                completions.add("setspawn");
             }
-
             completions.add("help");
+            String input = args[0].toLowerCase();
+
+            return completions.stream()
+                    .filter(s -> s.startsWith(input))
+                    .toList();
         }
 
-        String input = args[0].toLowerCase();
+        if (args.length == 2 && args[0].equalsIgnoreCase("setspawn")) {
+            if (!sender.hasPermission("hs.admin")) return List.of();
+            completions.add("hiders");
+            completions.add("seekers");
+            completions.add("lobby");
+            String input = args[1].toLowerCase();
 
-        return completions.stream()
-                .filter(s -> s.startsWith(input))
-                .toList();
+            return completions.stream()
+                    .filter(s -> s.startsWith(input))
+                    .toList();
+        }
+        return List.of();
     }
 }

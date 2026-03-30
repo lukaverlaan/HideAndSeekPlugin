@@ -3,6 +3,8 @@ prefix: "§6§lSC §8» "
 
 messages:
   en:
+    only_players: "%prefix%§cOnly players can use this command"
+
     choose_block: "%prefix%§eChoose a block"
 
     selected_block: "%prefix%§aSelected §7→ §f%block%"
@@ -11,6 +13,9 @@ messages:
     you_are_seeker: "%prefix%§cYou are a §fSeeker"
 
     game_starting: "%prefix%§eGame is starting..."
+    spawns_not_set: "%prefix%§cSpawns are not set! Use §e/hs setspawn"
+    missing_spawns: "%prefix%§cMissing spawns: §e%spawns%"
+    random_block_selected: "%prefix%§aNo block selected in time §7→ §frandom block: %block%"
     all_hiders_ready: "%prefix%§aTime to start hiding!"
     seekers_move: "%prefix%§cSeekers can now start seeking!"
 
@@ -36,7 +41,7 @@ messages:
 
     get_ready: "§7Get ready..."
 
-    you_are_solid: "%prefix%§aYou are now disguised"
+    you_are_solid: "%prefix%§aYou are now a real block!"
     you_moved: "%prefix%§cYou moved"
 
     no_permission: "%prefix%§cNo permission"
@@ -45,12 +50,16 @@ messages:
     command_game_running: "%prefix%§cGame already running"
     command_stopped_reason: "Stopped by an %player%"
     command_reload: "%prefix%§aConfigurations reloaded"
+    command_setspawn_usage: "%prefix%§cUsage: §e/hs setspawn <hiders | seekers | lobby>"
+    command_setspawn_invalid: "%prefix%§cInvalid spawn type"
+    command_setspawn_success: "%prefix%§aSpawn set for §e%type%"
+
 
     command_help_header: "§6§lHide & Seek"
     command_help_start: "§e/hs start §8- §7Start game"
     command_help_stop: "§e/hs stop §8- §7Stop game"
     command_help_reload: "§e/hs reload §8- §7Reload configs"
-
+    command_help_setspawn: "§e/hs setspawn <hiders | seekers| lobby> §8- §7Initialize a spawnpoint for the hiders/seekers/lobby"
 
     scoreboard:
       title: "§6§lSprookjesCraft"
@@ -65,6 +74,8 @@ messages:
       finished: "§6Finished"
 
   nl:
+    only_players: "%prefix%§cAlleen spelers kunnen dit commando gebruiken"
+
     choose_block: "%prefix%§eKies een blok"
 
     selected_block: "%prefix%§aGekozen §7→ §f%block%"
@@ -73,6 +84,9 @@ messages:
     you_are_seeker: "%prefix%§cJe bent een §fZoeker"
 
     game_starting: "%prefix%§eSpel start..."
+    spawns_not_set: "%prefix%§cSpawns zijn nog niet gekozen! Gebruik §e/hs setspawn"
+    missing_spawns: "%prefix%§cOntbrekende spawns: §e%spawns%"
+    random_block_selected: "%prefix%§aGeen blok gekozen binnen de tijd §7→ §fwillekeurig blok: %block%"
     all_hiders_ready: "%prefix%§aTijd om zich te verstoppen!"
     seekers_move: "%prefix%§cZoekers mogen beginnen met zoeken!"
 
@@ -98,7 +112,7 @@ messages:
 
     get_ready: "§7Maak je klaar..."
 
-    you_are_solid: "%prefix%§aJe bent nu vermomd"
+    you_are_solid: "%prefix%§aJe bent nu een echt blok!"
     you_moved: "%prefix%§cJe bewoog"
 
     no_permission: "%prefix%§cGeen toestemming"
@@ -107,11 +121,15 @@ messages:
     command_game_running: "%prefix%§cEr is al een spel bezig"
     command_stopped_reason: "Gestopt door %player%"
     command_reload: "%prefix%§aConfiguraties herladen"
+    command_setspawn_usage: "%prefix%§cGebruik: §e/hs setspawn <hiders | seekers | lobby>"
+    command_setspawn_invalid: "%prefix%§cOngeldig spawn type"
+    command_setspawn_success: "%prefix%§aSpawn ingesteld voor §e%type%"
 
     command_help_header: "§6§lHide & Seek"
     command_help_start: "§e/hs start §8- §7Start spel"
     command_help_stop: "§e/hs stop §8- §7Stop spel"
     command_help_reload: "§e/hs reload §8- §7Herlaad configs"
+    command_help_setspawn: "§e/hs setspawn <hiders | seekers | lobby> §8- §7Stel een spawnpoint in voor de verstoppers/zoekers/lobby"
 
     scoreboard:
       title: "§6§lSprookjesCraft"

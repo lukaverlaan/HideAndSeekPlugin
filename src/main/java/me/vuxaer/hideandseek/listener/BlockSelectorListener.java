@@ -12,7 +12,6 @@ import org.bukkit.event.inventory.*;
 import java.util.Map;
 
 public class BlockSelectorListener implements Listener {
-
     @EventHandler
     public void onClick(InventoryClickEvent e) {
 
@@ -45,14 +44,18 @@ public class BlockSelectorListener implements Listener {
         if (!e.getView().getTitle().equals(BlockSelector.TITLE)) return;
 
         Player player = (Player) e.getPlayer();
+        var plugin = HideAndSeekPlugin.getInstance();
 
-        var disguise = HideAndSeekPlugin.getInstance()
-                .getDisguiseManager()
+        if (plugin.getGameManager().isForceClosed(player)) {
+            return;
+        }
+
+        var disguise = plugin.getDisguiseManager()
                 .getDisguiseByPlayer(player);
 
         if (disguise == null) {
             Bukkit.getScheduler().runTaskLater(
-                    HideAndSeekPlugin.getInstance(),
+                    plugin,
                     () -> BlockSelector.open(player),
                     1L
             );

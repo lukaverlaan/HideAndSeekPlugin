@@ -54,23 +54,18 @@ public class GamePlayer {
         role = null;
 
         Player p = this.player;
-
         p.setGameMode(GameMode.ADVENTURE);
         p.setHealth(20.0);
         p.setFoodLevel(20);
         p.setFireTicks(0);
         p.setFallDistance(0);
-
-        p.getActivePotionEffects().forEach(effect ->
-                p.removePotionEffect(effect.getType()));
-
+        p.getActivePotionEffects().forEach(effect -> p.removePotionEffect(effect.getType()));
         p.setInvisible(false);
         p.setAllowFlight(false);
         p.setFlying(false);
         p.setGravity(true);
         p.setVelocity(p.getVelocity().zero());
     }
-
 
     public boolean canBeHit() {
         return System.currentTimeMillis() - lastHit > 500;

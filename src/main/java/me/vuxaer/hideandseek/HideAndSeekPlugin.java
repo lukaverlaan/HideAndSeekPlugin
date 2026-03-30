@@ -5,11 +5,11 @@ import me.vuxaer.hideandseek.command.GameTabCompleter;
 import me.vuxaer.hideandseek.listener.*;
 import me.vuxaer.hideandseek.manager.*;
 import me.vuxaer.hideandseek.net.HttpService;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class HideAndSeekPlugin extends JavaPlugin {
-
     private static HideAndSeekPlugin instance;
 
     private GameManager gameManager;
@@ -17,7 +17,7 @@ public final class HideAndSeekPlugin extends JavaPlugin {
     private DisguiseManager disguiseManager;
     private ScoreboardManager scoreboardManager;
     private MessageManager messageManager;
-
+    private SpawnManager spawnManager;
     private HttpService httpService;
 
     @Override
@@ -26,36 +26,53 @@ public final class HideAndSeekPlugin extends JavaPlugin {
 
         saveDefaultConfig();
 
-        messageManager = new MessageManager(this);
-
-        playerManager = new PlayerManager();
-        gameManager = new GameManager(playerManager);
-        disguiseManager = new DisguiseManager(this);
-        scoreboardManager = new ScoreboardManager(this);
-
-        httpService = new HttpService(this);
-
+        initializeManagers();
         registerOnlinePlayers();
+        registerCommands();
         registerListeners();
-
-        getCommand("hs").setExecutor(new GameCommand(this));
-        getCommand("hs").setTabCompleter(new GameTabCompleter());
 
         disguiseManager.startTask();
     }
 
     @Override
     public void onDisable() {
-        disguiseManager.cleanup();
+        if (disguiseManager != null) {
+            disguiseManager.cleanup();
+        }
+    }
+
+    private void initializeManagers() {
+        messageManager = new MessageManager(this);
+
+        playerManager = new PlayerManager();
+        gameManager = new GameManager(playerManager);
+        disguiseManager = new DisguiseManager(this);
+        scoreboardManager = new ScoreboardManager(this);
+        spawnManager = new SpawnManager(getConfig());
+
+        httpService = new HttpService(this);
+    }
+
+    private void registerCommands() {
+        PluginCommand command = getCommand("hs");
+        command.setExecutor(new GameCommand(this));
+        command.setTabCompleter(new GameTabCompleter());
     }
 
     private void registerListeners() {
-        getServer().getPluginManager().registerEvents(new JoinListener(), this);
-        getServer().getPluginManager().registerEvents(new QuitListener(), this);
-        getServer().getPluginManager().registerEvents(new MoveListener(), this);
-        getServer().getPluginManager().registerEvents(new DamageListener(), this);
-        getServer().getPluginManager().registerEvents(new BlockSelectorListener(), this);
-        getServer().getPluginManager().registerEvents(new BlockHitListener(), this);
+        var pm = getServer().getPluginManager();
+        pm.registerEvents(new JoinListener(), this);
+        pm.registerEvents(new QuitListener(), this);
+        pm.registerEvents(new MoveListener(), this);
+        pm.registerEvents(new DamageListener(), this);
+        pm.registerEvents(new BlockSelectorListener(), this);
+        pm.registerEvents(new BlockHitListener(), this);
+    }
+
+    private void registerOnlinePlayers() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            playerManager.addPlayer(player);
+        }
     }
 
     public static HideAndSeekPlugin getInstance() {
@@ -82,15 +99,11 @@ public final class HideAndSeekPlugin extends JavaPlugin {
         return messageManager;
     }
 
-    public HttpService getHttpService() {
-        return httpService;
+    public SpawnManager getSpawnManager() {
+        return spawnManager;
     }
 
-    private void registerOnlinePlayers() {
-        for (Player p : getServer().getOnlinePlayers()) {
-            if (playerManager.getPlayer(p) == null) {
-                playerManager.addPlayer(p);
-            }
-        }
+    public HttpService getHttpService() {
+        return httpService;
     }
 }

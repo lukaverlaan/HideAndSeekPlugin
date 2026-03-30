@@ -14,27 +14,21 @@ public class MoveListener implements Listener {
 
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
-
         if (event.getFrom().distanceSquared(event.getTo()) < 0.001) return;
 
         var plugin = HideAndSeekPlugin.getInstance();
         GameManager gm = plugin.getGameManager();
-
         GamePlayer gp = plugin.getPlayerManager().getPlayer(event.getPlayer());
         if (gp == null) return;
-
         if (gm.getState() == GameState.HIDING && gp.getRole() == PlayerRole.SEEKER) {
             event.setTo(event.getFrom());
             return;
         }
-
         if (gp.getRole() != PlayerRole.HIDER) return;
 
         BlockDisguise disguise = plugin.getDisguiseManager()
                 .getDisguiseByPlayer(event.getPlayer());
-
         if (disguise == null) return;
-
         disguise.onMove(event.getFrom(), event.getTo());
         disguise.updatePosition();
     }

@@ -12,10 +12,8 @@ public class QuitListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
-
         var plugin = HideAndSeekPlugin.getInstance();
         Player player = event.getPlayer();
-
         GameManager gm = plugin.getGameManager();
 
         var disguise = plugin.getDisguiseManager().getDisguiseByPlayer(player);
@@ -24,7 +22,6 @@ public class QuitListener implements Listener {
         }
 
         GamePlayer gp = plugin.getPlayerManager().getPlayer(player);
-
         if (gp != null) {
             gp.setAlive(false);
             plugin.getPlayerManager().removePlayer(player);

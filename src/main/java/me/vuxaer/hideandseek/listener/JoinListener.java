@@ -14,13 +14,11 @@ public class JoinListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-
         player.setFlying(false);
         player.setAllowFlight(false);
         player.setGravity(true);
 
         var plugin = HideAndSeekPlugin.getInstance();
-
         plugin.getPlayerManager().addPlayer(player);
 
         BlockDisguise disguise = plugin.getDisguiseManager().getDisguiseByPlayer(player);

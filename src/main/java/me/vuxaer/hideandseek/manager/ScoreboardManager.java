@@ -21,7 +21,6 @@ public class ScoreboardManager {
     }
 
     public void updateAll(int timeLeft) {
-
         int hiders = (int) plugin.getPlayerManager().getAllPlayers().stream()
                 .filter(p -> p.getRole() == PlayerRole.HIDER && p.isAlive())
                 .count();

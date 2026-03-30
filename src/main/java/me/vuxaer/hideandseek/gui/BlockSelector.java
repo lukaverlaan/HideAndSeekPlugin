@@ -10,81 +10,90 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
 
 public class BlockSelector {
-
+    private static final Random RANDOM = new Random();
     public static final String TITLE = HideAndSeekPlugin.getInstance()
             .getMessageManager()
             .get("choose_block");
+    private static final int[] DISPLAY_SLOTS = {3, 5};
 
-    private static final List<Material> BLOCKS = Arrays.asList(
-            Material.OAK_PLANKS,
-            Material.SPRUCE_PLANKS,
-            Material.BIRCH_PLANKS,
-            Material.STONE,
-            Material.COBBLESTONE,
-            Material.MOSSY_COBBLESTONE,
+    private static final List<Material> BLOCKS = List.of(
             Material.BRICKS,
-            Material.SANDSTONE,
-            Material.RED_SANDSTONE,
-            Material.NETHER_BRICKS,
-            Material.BLACKSTONE,
-            Material.END_STONE,
-            Material.DEEPSLATE,
-            Material.POLISHED_DEEPSLATE,
-            Material.OBSIDIAN,
-            Material.QUARTZ_BLOCK,
+            Material.BRICK_SLAB,
+            Material.BRICK_STAIRS,
+
+            Material.DARK_OAK_PLANKS,
+            Material.SPRUCE_PLANKS,
+            Material.DARK_OAK_LOG,
+            Material.SPRUCE_LOG,
+
+            Material.WARPED_FENCE,
+            Material.DARK_OAK_FENCE,
+            Material.SPRUCE_FENCE,
+
+            Material.GREEN_CONCRETE,
+            Material.GREEN_TERRACOTTA,
+            Material.MOSS_BLOCK,
+
+            Material.WARPED_PLANKS,
+            Material.WARPED_STEM,
+            Material.WARPED_HYPHAE,
+
+            Material.STONE,
             Material.SMOOTH_STONE,
+            Material.STONE_BRICKS,
+            Material.CRACKED_STONE_BRICKS,
+            Material.ANDESITE,
+            Material.POLISHED_ANDESITE,
+
+            Material.SANDSTONE,
+            Material.SMOOTH_SANDSTONE,
+            Material.CUT_SANDSTONE,
+
             Material.GRASS_BLOCK,
             Material.DIRT,
-            Material.MYCELIUM,
+            Material.COARSE_DIRT,
+            Material.PODZOL,
+
             Material.SNOW_BLOCK,
-            Material.HAY_BLOCK,
+
             Material.BOOKSHELF,
-            Material.OAK_FENCE,
-            Material.TNT
+            Material.HAY_BLOCK
     );
 
     public static void open(Player player) {
-
-        Inventory inv = Bukkit.createInventory(null, 9, TITLE);
+        int size = 9;
+        Inventory inv = Bukkit.createInventory(null, size, TITLE);
 
         List<Material> randomBlocks = getRandomBlocks(2);
-
-        int[] slots = {3, 5};
 
         for (int i = 0; i < randomBlocks.size(); i++) {
             Material mat = randomBlocks.get(i);
 
             ItemStack item = new ItemStack(mat);
             ItemMeta meta = item.getItemMeta();
-
-            meta.setDisplayName("§e" + formatMaterial(mat));
-            item.setItemMeta(meta);
-
-            inv.setItem(slots[i], item);
+            if (meta != null) {
+                meta.setDisplayName("§e" + formatMaterial(mat));
+                item.setItemMeta(meta);
+            }
+            inv.setItem(DISPLAY_SLOTS[i], item);
         }
-
         player.openInventory(inv);
     }
 
     public static String formatMaterial(Material mat) {
-
-        String name = mat.name().toLowerCase().replace("_", " ");
-
-        String[] words = name.split(" ");
-        StringBuilder formatted = new StringBuilder();
-
-        for (String word : words) {
-            formatted.append(Character.toUpperCase(word.charAt(0)))
-                    .append(word.substring(1))
-                    .append(" ");
-        }
-
-        return formatted.toString().trim();
+        return Arrays.stream(mat.name().toLowerCase().split("_"))
+                .map(word -> Character.toUpperCase(word.charAt(0)) + word.substring(1))
+                .reduce((a, b) -> a + " " + b)
+                .orElse("");
     }
 
     private static List<Material> getRandomBlocks(int amount) {
         List<Material> shuffled = new ArrayList<>(BLOCKS);
         Collections.shuffle(shuffled);
         return shuffled.subList(0, amount);
+    }
+
+    public static Material getRandomBlock() {
+        return BLOCKS.get(RANDOM.nextInt(BLOCKS.size()));
     }
 }

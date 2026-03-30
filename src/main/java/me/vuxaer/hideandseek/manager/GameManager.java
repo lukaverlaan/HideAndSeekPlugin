@@ -1,15 +1,13 @@
 package me.vuxaer.hideandseek.manager;
 
 import me.vuxaer.hideandseek.HideAndSeekPlugin;
+import me.vuxaer.hideandseek.domain.BlockDisguise;
 import me.vuxaer.hideandseek.domain.GamePlayer;
 import me.vuxaer.hideandseek.domain.GameResult;
 import me.vuxaer.hideandseek.gui.BlockSelector;
 import me.vuxaer.hideandseek.util.GameState;
 import me.vuxaer.hideandseek.util.PlayerRole;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -23,6 +21,7 @@ public class GameManager {
     private static final String HIDERS = "HIDERS";
 
     private final Set<UUID> selectedHiders = new HashSet<>();
+    private final Set<UUID> forceClosed = new HashSet<>();
 
     private final HideAndSeekPlugin plugin = HideAndSeekPlugin.getInstance();
     private final PlayerManager playerManager;
@@ -31,7 +30,6 @@ public class GameManager {
 
     private BukkitRunnable hideTimer;
     private BukkitRunnable gameTimer;
-
     private long gameStartTime;
 
     public GameManager(PlayerManager playerManager) {
@@ -43,53 +41,45 @@ public class GameManager {
     }
 
     public boolean startGame() {
-
         selectedHiders.clear();
-
         if (state != GameState.WAITING) return false;
-
         if (Bukkit.getOnlinePlayers().size() < 2) {
             Bukkit.broadcastMessage(plugin.getMessageManager().get("not_enough_players"));
             return false;
         }
+        if (!hasAllSpawns()) {
+            Bukkit.broadcastMessage(plugin.getMessageManager().get("missing_spawns", Map.of("spawns", getMissingSpawns())));
+            return false;
+        }
 
         Bukkit.broadcastMessage(plugin.getMessageManager().get("game_starting"));
-
         assignTeams();
         return true;
     }
 
     public void resetGame() {
-
         stopTimers();
-
         for (GamePlayer gp : playerManager.getAllPlayers()) {
-
             Player player = gp.getPlayer();
 
             var disguise = plugin.getDisguiseManager().getDisguiseByPlayer(player);
             if (disguise != null) {
                 plugin.getDisguiseManager().removeDisguise(disguise);
             }
-
             gp.reset();
             gp.setAlive(true);
         }
-
         plugin.getScoreboardManager().clearAll();
-
         state = GameState.WAITING;
     }
 
     private void assignTeams() {
-
         List<GamePlayer> list = new ArrayList<>(playerManager.getAllPlayers());
         Collections.shuffle(list);
-
         int seekersAmount  = Math.max(1, list.size() / 3);
+        var spawnManager = plugin.getSpawnManager();
 
         for (int i = 0; i < list.size(); i++) {
-
             GamePlayer gp = list.get(i);
             gp.reset();
 
@@ -99,26 +89,28 @@ public class GameManager {
                 Player player = gp.getPlayer();
                 player.setGameMode(GameMode.SURVIVAL);
 
-                gp.getPlayer().sendMessage(
-                        plugin.getMessageManager().get("you_are_seeker")
-                );
+                var loc = spawnManager.getSpawn("seekers");
+                if (loc != null) player.teleport(loc);
+
+                player.sendMessage(plugin.getMessageManager().get("you_are_seeker"));
+
             } else {
                 gp.setRole(PlayerRole.HIDER);
-                gp.getPlayer().sendMessage(
-                        plugin.getMessageManager().get("you_are_hider")
-                );
+                Player player = gp.getPlayer();
 
-                selectedHiders.add(gp.getPlayer().getUniqueId());
+                var loc = spawnManager.getSpawn("hiders");
+                if (loc != null) player.teleport(loc);
 
-                BlockSelector.open(gp.getPlayer());
+                player.sendMessage(plugin.getMessageManager().get("you_are_hider"));
+                selectedHiders.add(player.getUniqueId());
+                BlockSelector.open(player);
             }
         }
+        startHiderSelectionTimeout();
     }
 
     private void startHideCountdown() {
-
         if (hideTimer != null) hideTimer.cancel();
-
         for (GamePlayer gp : playerManager.getAllPlayers()) {
             if (gp.getRole() == PlayerRole.SEEKER) {
                 gp.getPlayer().addPotionEffect(
@@ -128,12 +120,9 @@ public class GameManager {
         }
 
         hideTimer = new BukkitRunnable() {
-
             int time = 60;
-
             @Override
             public void run() {
-
                 plugin.getScoreboardManager().updateAll(time);
 
                 if (state != GameState.HIDING) {
@@ -149,20 +138,13 @@ public class GameManager {
 
                 if (time == 60 || time == 30 || time == 10 || time <= 5) {
                     var msg = plugin.getMessageManager();
-
                     String timeMsg = msg.getTime("second_remaining", "seconds_remaining", time);
                     Bukkit.broadcastMessage(timeMsg);
                 }
 
                 if (time <= 5 && time > 0) {
                     for (Player p : Bukkit.getOnlinePlayers()) {
-
-                        p.sendTitle(
-                                "§e§l" + time,
-                                plugin.getMessageManager().get("get_ready"),
-                                0, 20, 0
-                        );
-
+                        p.sendTitle("§e§l" + time, plugin.getMessageManager().get("get_ready"), 0, 20, 0);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.5f);
                     }
                 }
@@ -175,7 +157,6 @@ public class GameManager {
     }
 
     private void startSeekingPhase() {
-
         state = GameState.SEEKING;
         gameStartTime = System.currentTimeMillis();
 
@@ -193,79 +174,66 @@ public class GameManager {
         }
 
         startGameTimer();
+
+        var hiderSpawn = plugin.getSpawnManager().getSpawn("hiders");
+
+        if (hiderSpawn != null) {
+            for (GamePlayer gp : playerManager.getAllPlayers()) {
+                if (gp.getRole() == PlayerRole.SEEKER) {
+                    gp.getPlayer().teleport(hiderSpawn);
+                }
+            }
+        }
     }
 
     private void startGameTimer() {
-
         gameTimer = new BukkitRunnable() {
-
             int time = 180;
-
             @Override
             public void run() {
-
                 plugin.getScoreboardManager().updateAll(time);
 
                 if (state != GameState.SEEKING) {
                     cancel();
                     return;
                 }
-
                 if (time <= 0) {
                     cancel();
                     endGame(HIDERS);
                     return;
                 }
-
                 time--;
             }
         };
-
         gameTimer.runTaskTimer(plugin, 0, 20);
     }
 
     public void handleHit(Player attacker, Player victim) {
-
         GamePlayer attackerGP = playerManager.getPlayer(attacker);
         GamePlayer victimGP = playerManager.getPlayer(victim);
-
         if (attackerGP == null || victimGP == null) return;
         if (attackerGP.getRole() != PlayerRole.SEEKER ||
                 victimGP.getRole() != PlayerRole.HIDER) return;
         if (!victimGP.canBeHit()) return;
 
         var disguise = plugin.getDisguiseManager().getDisguiseByPlayer(victim);
-
         if (disguise != null && !disguise.isSolid()) {
 
             var direction = victim.getLocation().toVector()
                     .subtract(attacker.getLocation().toVector())
                     .normalize();
-
             direction.setY(0.35);
-
             victim.setVelocity(direction.multiply(0.4));
-
-            attacker.playSound(attacker.getLocation(),
-                    Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1, 1);
+            attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_KNOCKBACK, 1, 1);
         }
 
         victimGP.registerHit();
-
         attacker.playSound(attacker.getLocation(), Sound.ENTITY_PLAYER_ATTACK_STRONG, 1, 1);
         victim.playSound(victim.getLocation(), Sound.ENTITY_PLAYER_HURT, 1, 1);
-
-        victim.getWorld().spawnParticle(
-                Particle.CRIT,
-                victim.getLocation().add(0, 1, 0),
-                10
-        );
+        victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 10);
 
         if (!victimGP.isDead()) {
-            victim.sendMessage(
-                    plugin.getMessageManager().get("you_got_hit",
-                            Map.of("hits", String.valueOf(victimGP.getHits())))
-            );
+            victim.sendMessage(plugin.getMessageManager().get("you_got_hit", Map.of("hits", String.valueOf(victimGP.getHits()))));
             return;
         }
 
@@ -274,10 +242,7 @@ public class GameManager {
         }
 
         victimGP.setAlive(false);
-
-        victim.sendMessage(
-                plugin.getMessageManager().get("you_eliminated")
-        );
+        victim.sendMessage(plugin.getMessageManager().get("you_eliminated"));
 
         victim.playSound(victim.getLocation(), Sound.ENTITY_WITHER_DEATH, 1, 1);
         victim.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, victim.getLocation(), 1);
@@ -288,30 +253,18 @@ public class GameManager {
                 .filter(GamePlayer::isAlive)
                 .count();
 
-        String base = plugin.getMessageManager().get("player_found",
-                Map.of(
-                        "attacker", attacker.getName(),
-                        "victim", victim.getName()
-                )
-        );
-
+        String base = plugin.getMessageManager().get("player_found", Map.of("attacker", attacker.getName(), "victim", victim.getName()));
         String extra = "";
         if (remaining > 0) {
             String key = (remaining == 1) ? "hider_left" : "hiders_left";
-
-            extra = plugin.getMessageManager().get(
-                    key,
-                    Map.of("count", String.valueOf(remaining))
-            );
+            extra = plugin.getMessageManager().get(key, Map.of("count", String.valueOf(remaining)));
         }
 
         Bukkit.broadcastMessage(base + extra);
-
         checkWinCondition();
     }
 
     public void checkWinCondition() {
-
         long aliveHiders = playerManager.getAllPlayers().stream()
                 .filter(p -> p.getRole() == PlayerRole.HIDER)
                 .filter(GamePlayer::isAlive)
@@ -330,7 +283,6 @@ public class GameManager {
     }
 
     private void endGame(String winner) {
-
         state = GameState.ENDING;
         stopTimers();
 
@@ -359,12 +311,19 @@ public class GameManager {
         sendResult(result);
 
         Bukkit.getScheduler().runTaskLater(plugin, this::resetGame, 100);
+
+        var lobby = plugin.getSpawnManager().getSpawn("lobby");
+        if (lobby != null) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    p.teleport(lobby);
+                }
+            }, 100);
+        }
     }
 
     private void sendResult(GameResult result) {
-
         String endpoint = plugin.getConfig().getString("endpoint");
-
         if (endpoint == null || endpoint.isEmpty()) {
             plugin.getLogger().warning("No endpoint configured!");
             return;
@@ -389,7 +348,6 @@ public class GameManager {
     }
 
     private void stopTimers() {
-
         if (gameTimer != null) {
             gameTimer.cancel();
             gameTimer = null;
@@ -402,18 +360,21 @@ public class GameManager {
     }
 
     public void cancelGame(String reason) {
-
         if (!isGameRunning()) return;
-
         state = GameState.ENDING;
-
         stopTimers();
 
-        Bukkit.broadcastMessage(
-                plugin.getMessageManager().get("game_cancelled", Map.of("reason", reason))
-        );
-
+        Bukkit.broadcastMessage(plugin.getMessageManager().get("game_cancelled", Map.of("reason", reason)));
         Bukkit.getScheduler().runTaskLater(plugin, this::resetGame, 40);
+
+        var lobby = plugin.getSpawnManager().getSpawn("lobby");
+        if (lobby != null) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    p.teleport(lobby);
+                }
+            }, 40);
+        }
     }
 
     public boolean isGameRunning() {
@@ -421,9 +382,7 @@ public class GameManager {
     }
 
     public void onHiderSelected(Player player) {
-
         selectedHiders.remove(player.getUniqueId());
-
         if (selectedHiders.isEmpty()) {
 
             Bukkit.broadcastMessage(
@@ -433,5 +392,80 @@ public class GameManager {
             state = GameState.HIDING;
             startHideCountdown();
         }
+    }
+
+    private String getMissingSpawns() {
+
+        var sm = plugin.getSpawnManager();
+        List<String> missing = new ArrayList<>();
+        if (sm.getSpawn("hiders") == null) missing.add("hiders");
+        if (sm.getSpawn("seekers") == null) missing.add("seekers");
+        if (sm.getSpawn("lobby") == null) missing.add("lobby");
+
+        return String.join(", ", missing);
+    }
+
+    private boolean hasAllSpawns() {
+        return getMissingSpawns().isEmpty();
+    }
+
+    private void startHiderSelectionTimeout() {
+
+        new BukkitRunnable() {
+            int time = 15;
+            @Override
+            public void run() {
+                if (state != GameState.WAITING && state != GameState.HIDING) {
+                    cancel();
+                    return;
+                }
+                if (selectedHiders.isEmpty()) {
+                    cancel();
+                    return;
+                }
+
+                var msg = plugin.getMessageManager();
+
+                for (UUID uuid : selectedHiders) {
+                    Player player = Bukkit.getPlayer(uuid);
+                    if (player == null) continue;
+
+                    BlockDisguise.sendActionBar(player, msg.get("choose_block") + " §7(" + time + "s)");
+
+                    if (time <= 5) {
+                        player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1.5f);
+                    }
+                }
+
+                if (time <= 0) {
+                    for (UUID uuid : new HashSet<>(selectedHiders)) {
+                        Player player = Bukkit.getPlayer(uuid);
+                        if (player == null || !player.isOnline()) continue;
+
+                        var disguiseManager = plugin.getDisguiseManager();
+                        if (disguiseManager.getDisguiseByPlayer(player) != null) continue;
+
+                        forceClosed.add(player.getUniqueId());
+                        player.closeInventory();
+
+                        Material random = BlockSelector.getRandomBlock();
+                        disguiseManager.disguise(player, random);
+
+                        player.sendMessage(
+                                msg.get("random_block_selected",
+                                        Map.of("block", "§e" + BlockSelector.formatMaterial(random)))
+                        );
+                        onHiderSelected(player);
+                    }
+                    cancel();
+                    return;
+                }
+                time--;
+            }
+        }.runTaskTimer(plugin, 0, 20);
+    }
+
+    public boolean isForceClosed(Player player) {
+        return forceClosed.remove(player.getUniqueId());
     }
 }
