@@ -11,8 +11,8 @@ messages:
     you_are_seeker: "%prefix%§cYou are a §fSeeker"
 
     game_starting: "%prefix%§eGame is starting..."
-    all_hiders_ready: "%prefix%§aAll hiders are ready"
-    seekers_move: "%prefix%§cSeekers can now move"
+    all_hiders_ready: "%prefix%§aTime to start hiding!"
+    seekers_move: "%prefix%§cSeekers can now start seeking!"
 
     game_cancelled: "%prefix%§cGame cancelled §7(%reason%)"
 
@@ -70,8 +70,8 @@ messages:
     you_are_seeker: "%prefix%§cJe bent een §fZoeker"
 
     game_starting: "%prefix%§eSpel start..."
-    all_hiders_ready: "%prefix%§aAlle verstoppers zijn klaar"
-    seekers_move: "%prefix%§cZoekers mogen bewegen"
+    all_hiders_ready: "%prefix%§aTijd om zich te verstoppen!"
+    seekers_move: "%prefix%§cZoekers mogen beginnen met zoeken!"
 
     game_cancelled: "%prefix%§cSpel gestopt §7(%reason%)"
 
@@ -87,8 +87,8 @@ messages:
 
     not_enough_players: "%prefix%§cNiet genoeg spelers"
 
-    seconds_remaining: "%prefix%§e%time% seconden"
-    second_remaining: "%prefix%§e%time% seconde"
+    seconds_remaining: "%prefix%§e%time% seconden resterend"
+    second_remaining: "%prefix%§e%time% seconde resterend"
 
     get_ready: "§7Maak je klaar..."
 

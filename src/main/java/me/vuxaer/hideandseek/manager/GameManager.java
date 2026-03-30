@@ -343,7 +343,7 @@ public class GameManager {
 
             p.sendTitle(
                     "§6§lGAME OVER",
-                    winner.equals(SEEKERS) ? "§cSeekers win!" : "§aHiders win!",
+                    winner.equals(SEEKERS) ? plugin.getMessageManager().get("seekers_win") : plugin.getMessageManager().get("hiders_win"),
                     10, 60, 10
             );
 
