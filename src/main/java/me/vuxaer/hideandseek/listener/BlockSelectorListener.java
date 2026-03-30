@@ -12,7 +12,6 @@ import org.bukkit.event.inventory.*;
 import java.util.Map;
 
 public class BlockSelectorListener implements Listener {
-
     @EventHandler
     public void onClick(InventoryClickEvent e) {
         if (!e.getView().getTitle().equals(BlockSelector.TITLE)) return;

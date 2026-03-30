@@ -11,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 public class MoveListener implements Listener {
-
     @EventHandler
     public void onMove(PlayerMoveEvent event) {
         if (event.getFrom().distanceSquared(event.getTo()) < 0.001) return;

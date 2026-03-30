@@ -67,6 +67,7 @@ public final class HideAndSeekPlugin extends JavaPlugin {
         pm.registerEvents(new DamageListener(), this);
         pm.registerEvents(new BlockSelectorListener(), this);
         pm.registerEvents(new BlockHitListener(), this);
+        pm.registerEvents(new BlockBreakListener(), this);
     }
 
     private void registerOnlinePlayers() {

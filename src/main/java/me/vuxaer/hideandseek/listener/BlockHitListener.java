@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class BlockHitListener implements Listener {
-
     @EventHandler
     public void onBlockHit(PlayerInteractEvent event) {
         if (event.getAction() != Action.LEFT_CLICK_BLOCK) return;

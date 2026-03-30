@@ -228,7 +228,10 @@ public class GameManager {
         victim.playSound(victim.getLocation(), Sound.ENTITY_PLAYER_HURT, 1, 1);
         victim.getWorld().spawnParticle(Particle.CRIT, victim.getLocation().add(0, 1, 0), 10);
 
+        double maxHealth = victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getDefaultValue();
+        double newHealth = maxHealth - (victimGP.getHits() * (maxHealth / 3.0));
         if (!victimGP.isDead()) {
+            victim.setHealth(Math.max(1.0, newHealth));
             victim.sendMessage(plugin.getMessageManager().get("you_got_hit", Map.of("hits", String.valueOf(victimGP.getHits()))));
             return;
         }
