@@ -95,6 +95,10 @@ public class GameManager {
 
             if (i < seekersAmount ) {
                 gp.setRole(PlayerRole.SEEKER);
+
+                Player player = gp.getPlayer();
+                player.setGameMode(GameMode.SURVIVAL);
+
                 gp.getPlayer().sendMessage(
                         plugin.getMessageManager().get("you_are_seeker")
                 );
