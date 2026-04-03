@@ -49,7 +49,7 @@ public class ScoreboardManager {
             }
 
             int score = 15;
-            obj.getScore("§7Hide & Seek").setScore(score--);
+            obj.getScore("").setScore(score--);
             obj.getScore("§8§m────────────").setScore(score--);
             obj.getScore(msg.get("scoreboard.status",
                     Map.of("state", formatState(state)))).setScore(score--);

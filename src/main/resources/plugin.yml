@@ -3,14 +3,16 @@ version: '1.0'
 main: me.vuxaer.hideandseek.HideAndSeekPlugin
 api-version: '1.20'
 authors: [ Vuxaer ]
-description: Hide And Seek - SprookjesCraft Assignment
+description: A simple Hide and Seek minigame plugin
 
 commands:
   hs:
-    description: Hide and Seek command
-    usage: /has <start|stop>
+    description: Main command for the Hide and Seek game
+    usage: /hs <help|start|stop|reload|setspawn>
+    permission: hs.admin
+    permission-message: You do not have permission to use this command.
 
 permissions:
   hs.admin:
-    description: Allows managing the game
+    description: Allows managing the Hide and Seek game
     default: op

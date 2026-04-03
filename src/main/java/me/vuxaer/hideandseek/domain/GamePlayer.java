@@ -28,10 +28,6 @@ public class GamePlayer {
         this.role = role;
     }
 
-    public void addHit() {
-        hits++;
-    }
-
     public int getHits() {
         return hits;
     }

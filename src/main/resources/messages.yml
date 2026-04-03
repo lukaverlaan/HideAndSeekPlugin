@@ -1,5 +1,5 @@
-language: nl
-prefix: "§6§lSC §8» "
+language: eng
+prefix: "§6§lHS §8» "
 
 messages:
   en:
@@ -62,7 +62,7 @@ messages:
     command_help_setspawn: "§e/hs setspawn <hiders | seekers| lobby> §8- §7Initialize a spawnpoint for the hiders/seekers/lobby"
 
     scoreboard:
-      title: "§6§lSprookjesCraft"
+      title: "§6§lHide And Seek"
       seekers: "§c§lSeekers: §f%count%"
       hiders: "§a§lHiders: §f%count%"
       time: "§fRemaining time: §e%time%s"
@@ -132,7 +132,7 @@ messages:
     command_help_setspawn: "§e/hs setspawn <hiders | seekers | lobby> §8- §7Stel een spawnpoint in voor de verstoppers/zoekers/lobby"
 
     scoreboard:
-      title: "§6§lSprookjesCraft"
+      title: "§6§lHide and Seek"
       seekers: "§c§lZoekers: §f%count%"
       hiders: "§a§lVerstoppers: §f%count%"
       time: "§fResterende tijd: §e%time%s"
